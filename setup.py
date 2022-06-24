@@ -10,6 +10,7 @@ setup(
         'numpy>=1.17.2',
         'sklearn',
         'pandas',
+        'networkx',
     ],
     tests_require=[
         "pytest",
