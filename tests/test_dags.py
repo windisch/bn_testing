@@ -2,13 +2,13 @@ import unittest
 import networkx as nx
 import numpy as np
 
-from bn_testing.dags import GraphicalModel
+from bn_testing.dags import GroupedGaussianBN
 
 
 class TestRandomDAG(unittest.TestCase):
 
     def setUp(self):
-        self.bn = GraphicalModel(n_nodes=10, n_groups=2, p=0.1)
+        self.bn = GroupedGaussianBN(n_nodes=10, n_groups=2, p=0.1)
 
     def test_acyclicity(self):
         self.assertTrue(nx.is_directed_acyclic_graph(self.bn.dag))

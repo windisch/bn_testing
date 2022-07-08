@@ -2,7 +2,7 @@ import unittest
 import pandas as pd
 import numpy as np
 
-from bn_testing.models import ConditionalGaussian
+from bn_testing.conditionals import ConditionalGaussian
 
 
 class TestModel(unittest.TestCase):
