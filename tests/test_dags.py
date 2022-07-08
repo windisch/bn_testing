@@ -13,9 +13,6 @@ class TestRandomDAG(unittest.TestCase):
     def test_acyclicity(self):
         self.assertTrue(nx.is_directed_acyclic_graph(self.bn.dag))
 
-    def test_group_names(self):
-        assert False
-
     def test_nodes(self):
         np.testing.assert_array_equal(
             self.bn.nodes,
