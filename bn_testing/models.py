@@ -1,13 +1,13 @@
 import numpy as np
 
 
-class Model(object):
+class ConditionalDistribution(object):
 
     def sample(self, df):
         raise NotImplementedError()
 
 
-class ConditionalGaussian(Model):
+class ConditionalGaussian(ConditionalDistribution):
     """
     """
 
