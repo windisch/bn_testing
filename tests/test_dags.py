@@ -2,7 +2,7 @@ import unittest
 import networkx as nx
 import numpy as np
 
-from bn_testing.graphs import GraphicalModel
+from bn_testing.dags import GraphicalModel
 
 
 class TestRandomDAG(unittest.TestCase):

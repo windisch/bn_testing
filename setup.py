@@ -8,9 +8,9 @@ setup(
     # dependencies
     install_requires=[
         'numpy>=1.17.2',
-        'sklearn',
-        'pandas',
-        'networkx',
+        'pandas>=1.3.0',
+        'networkx>=2.5',
+        'tqdm>4.6.0',
     ],
     tests_require=[
         "pytest",
