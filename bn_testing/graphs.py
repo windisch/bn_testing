@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import logging
+from tqdm import tqdm
 import networkx as nx
 from bn_testing.models import ConditionalGaussian
 from itertools import (
@@ -32,7 +33,7 @@ class GraphicalModel(object):
         p (float): Erdös-Renyi probability
     """
 
-    def __init__(self, n_nodes, n_groups=1, p=0.1, random_state=10):
+    def __init__(self, n_nodes, n_groups=1, p=0.01, random_state=10):
 
         self.p = p
 
@@ -126,9 +127,7 @@ class GraphicalModel(object):
 
         df = pd.DataFrame()
 
-        nodes = nx.topological_sort(self.dag)
-
-        for node in nodes:
+        for node in tqdm(self.nodes):
             if node in self.models:
                 df[node] = self.models[node].sample(df)
             else:
