@@ -3,25 +3,18 @@ import pandas as pd
 import logging
 from tqdm import tqdm
 import networkx as nx
-from bn_testing.models import ConditionalGaussian
 from itertools import (
     combinations,
     product,
 )
 
+from bn_testing.conditionals import ConditionalGaussian
+from bn_testing.helpers import _generate_int_suffixes
 
 logger = logging.getLogger(__name__)
 
 
-def _generate_int_suffixes(prefix, n):
-    return [
-        "{}{}".format(
-            prefix,
-            str(i).zfill(len(str(n)))) for i in range(n)
-    ]
-
-
-class GraphicalModel(object):
+class GroupedGaussianBN(object):
     """
 
 
