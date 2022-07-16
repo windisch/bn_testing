@@ -20,6 +20,7 @@ class GroupedGaussianBN(object):
 
     Note:
         We assume that the order of the nodes is the topological ordering of the resulting graph
+        Comment az: There is more than one topological sorting !!!
 
     Args:
         n_nodes (int): Number of nodes
