@@ -92,6 +92,7 @@ class GroupedGaussianBN(object):
         # Select random edges within the groups
         for group, nodes in self.groups.items():
 
+            # combinations will only give you (A,B) but but not (B,A), is that intended ?
             all_forward_edges_of_group = combinations(nodes, 2)
             edges_selected = self._select_edges(all_forward_edges_of_group, self.p)
             all_edges.extend(edges_selected)
