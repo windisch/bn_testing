@@ -39,6 +39,8 @@ class GroupedGaussianBN(object):
         self.groups = {
             group_name: self._generate_node_names(
                 # TODO: Improve splitting
+                # How about specifying nodes_per_group and avoid
+                # that size of the last group is uncontrolled
                 n_nodes=int(n_nodes/n_groups),
                 group_name=group_name,
             ) for group_name in self.group_names
