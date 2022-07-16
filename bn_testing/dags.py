@@ -124,6 +124,7 @@ class GroupedGaussianBN(object):
 
         df = pd.DataFrame()
 
+        # this has to start at the sources of the graph, right ?
         for node in tqdm(self.nodes):
             if node in self.models:
                 df[node] = self.models[node].sample(df)
