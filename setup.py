@@ -1,10 +1,6 @@
 from setuptools import setup
 from pathlib import Path
 
-# read the contents of your README file
-this_directory = Path(__file__).parent
-long_description = (this_directory / "README.md").read_text()
-
 setup(
     name="bn_testing",
     version="0.1.1",
@@ -26,7 +22,7 @@ setup(
     author_email="tobias.windisch@posteo.de",
     description="A test bench to benchmark learn algorithms for graphical models",
     license="GNU GPL3",
-    long_description=long_description,
+    long_description=(Path(__file__).parent / "README.md").read_text(),
     long_description_content_type='text/markdown',
     keywords="graphical models",
     url="https://github.com/windisch/bn-test-bench",
