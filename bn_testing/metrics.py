@@ -44,7 +44,7 @@ def compute_group_distance_matrix(model, dag_learned, distance_fn):
 
     for group_from, group_to in _group_iterator(model.group_names):
 
-        dag_truth = model.get_grouped_subgraph([group_from, group_to])
+        dag_truth = model.get_subgraph_on_groups([group_from, group_to])
         dag_pred = dag_learned.subgraph(dag_truth.nodes)
 
         distance = distance_fn(
