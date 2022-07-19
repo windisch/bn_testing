@@ -5,6 +5,9 @@ import numpy as np
 from itertools import combinations
 
 
+def _get_adjacency_matrix(dag):
+    return np.asmatrix(nx.to_numpy_array(dag_truth))
+
 def _group_iterator(groups):
     """
     Yields tuples of groups where the first element in the tuple can have influence on the second
@@ -48,8 +51,8 @@ def compute_group_distance_matrix(model, dag_learned, distance_fn):
         dag_pred = dag_learned.subgraph(dag_truth.nodes)
 
         distance = distance_fn(
-            adj_truth=nx.to_numpy_matrix(dag_truth),
-            adj_pred=nx.to_numpy_matrix(dag_pred),
+            adj_truth=_get_adjacency_matrix(dag_truth),
+            adj_pred=_get_adjacency_matrix(dag_pred),
         )
 
         distances[

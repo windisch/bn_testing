@@ -38,7 +38,6 @@ class TestMetrics(unittest.TestCase):
             dag_learned=self.model.dag,
             distance_fn=toy_distance_fn
         )
-
         np.testing.assert_array_equal(
             distances,
             np.zeros((4, 4))
