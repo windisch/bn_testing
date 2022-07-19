@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import logging
+from itertools import chain
 from tqdm import tqdm
 import networkx as nx
 from itertools import (
@@ -81,6 +82,17 @@ class GroupedGaussianBN(object):
             size=edges.shape[0]
         )
         return edges[selection]
+
+    def _get_nodes_of_group(self, group_name):
+
+        if group_name not in self.group_names:
+            raise ValueError('Unkown group {group_name}')
+        return [n for n in self.dag.nodes() if n.startswith(group_name)]
+
+    def get_subgraph_on_groups(self, groups):
+        all_nodes = [self._get_nodes_of_group(group) for group in groups]
+        nodes = [n for nodes in all_nodes for n in nodes]
+        return self.dag.subgraph(nodes)
 
     def _generate_dag(self):
 
