@@ -20,6 +20,7 @@ class GroupedGaussianBN(object):
 
     Note:
         We assume that the order of the nodes is the topological ordering of the resulting graph
+        Comment az: There is more than one topological sorting !!!
 
     Args:
         n_nodes (int): Number of nodes
@@ -38,6 +39,8 @@ class GroupedGaussianBN(object):
         self.groups = {
             group_name: self._generate_node_names(
                 # TODO: Improve splitting
+                # How about specifying nodes_per_group and avoid
+                # that size of the last group is uncontrolled
                 n_nodes=int(n_nodes/n_groups),
                 group_name=group_name,
             ) for group_name in self.group_names
@@ -89,6 +92,7 @@ class GroupedGaussianBN(object):
         # Select random edges within the groups
         for group, nodes in self.groups.items():
 
+            # combinations will only give you (A,B) but but not (B,A), is that intended ?
             all_forward_edges_of_group = combinations(nodes, 2)
             edges_selected = self._select_edges(all_forward_edges_of_group, self.p)
             all_edges.extend(edges_selected)
@@ -120,6 +124,7 @@ class GroupedGaussianBN(object):
 
         df = pd.DataFrame()
 
+        # this has to start at the sources of the graph, right ?
         for node in tqdm(self.nodes):
             if node in self.models:
                 df[node] = self.models[node].sample(df)
