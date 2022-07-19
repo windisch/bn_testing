@@ -5,8 +5,8 @@ import numpy as np
 from itertools import combinations
 
 
-def _get_adjacency_matrix(dag):
-    return nx.to_numpy_array(dag)
+def _get_adjacency_matrix(dag, nodes):
+    return nx.to_numpy_array(dag, nodelist=nodes)
 
 def _group_iterator(groups):
     """
@@ -48,11 +48,13 @@ def compute_group_distance_matrix(model, dag_learned, distance_fn):
     for group_from, group_to in _group_iterator(model.group_names):
 
         dag_truth = model.get_subgraph_on_groups([group_from, group_to])
-        dag_pred = dag_learned.subgraph(dag_truth.nodes)
+
+        nodes = dag_truth.nodes
+        dag_pred = dag_learned.subgraph(nodes)
 
         distance = distance_fn(
-            adj_truth=_get_adjacency_matrix(dag_truth),
-            adj_pred=_get_adjacency_matrix(dag_pred),
+            adj_truth=_get_adjacency_matrix(dag_truth, nodes),
+            adj_pred=_get_adjacency_matrix(dag_pred, nodes),
         )
 
         distances[
