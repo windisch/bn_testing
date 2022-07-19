@@ -6,7 +6,7 @@ from itertools import combinations
 
 
 def _get_adjacency_matrix(dag):
-    return np.asmatrix(nx.to_numpy_array(dag_truth))
+    return nx.to_numpy_array(dag)
 
 def _group_iterator(groups):
     """
