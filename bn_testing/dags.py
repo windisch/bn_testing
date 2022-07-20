@@ -18,10 +18,8 @@ logger = logging.getLogger(__name__)
 class GroupedGaussianBN(object):
     """
 
-
     Note:
-        We assume that the order of the nodes is the topological ordering of the resulting graph
-        Comment az: There is more than one topological sorting !!!
+        We assume that the order of the nodes is a topological ordering of the resulting graph.
 
     Args:
         n_nodes (int): Number of nodes
@@ -121,6 +119,17 @@ class GroupedGaussianBN(object):
         dag.add_edges_from(all_edges)
         return dag
 
+    def get_structural_zeros(self):
+        """
+        Returns edges that are by definition not used by the model.
+        """
+        structural_zeros = []
+        for group_to, group_from in combinations(self.group_names[::-1], 2):
+            for edge_from, edge_to in product(self.groups[group_to], self.groups[group_from]):
+                structural_zeros.append((edge_from, edge_to))
+        return structural_zeros
+
+
     def _generate_models(self):
         models = {}
         for node in self.dag.nodes():
@@ -136,7 +145,6 @@ class GroupedGaussianBN(object):
 
         df = pd.DataFrame()
 
-        # this has to start at the sources of the graph, right ?
         for node in tqdm(self.nodes):
             if node in self.models:
                 df[node] = self.models[node].sample(df)
