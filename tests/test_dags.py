@@ -46,3 +46,10 @@ class TestRandomDAG(unittest.TestCase):
         for edge in dag.edges:
             for node in edge:
                 self.assertTrue(node.startswith('g0'))
+
+    def test_structural_zeros(self):
+        structural_zeros = self.model.get_structural_zeros()
+        self.assertEqual(len(structural_zeros), 10/2*10/2)
+        self.assertIn(('g1_f0', 'g0_f1'), structural_zeros)
+        self.assertIn(('g1_f1', 'g0_f1'), structural_zeros)
+        self.assertIn(('g1_f1', 'g0_f0'), structural_zeros)

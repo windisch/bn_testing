@@ -3,7 +3,7 @@ from pathlib import Path
 
 setup(
     name="bn_testing",
-    version="0.1.1",
+    version="0.2.0",
     packages=["bn_testing"],
 
     # dependencies
