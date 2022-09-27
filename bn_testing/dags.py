@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import logging
-from itertools import chain
 from tqdm import tqdm
 import networkx as nx
 from itertools import (
@@ -129,7 +128,6 @@ class GroupedGaussianBN(object):
                 structural_zeros.append((edge_from, edge_to))
         return structural_zeros
 
-
     def _generate_models(self):
         models = {}
         for node in self.dag.nodes():
@@ -149,8 +147,11 @@ class GroupedGaussianBN(object):
             if node in self.models:
                 df[node] = self.models[node].sample(df)
             else:
-                # TODO: Change parameters
                 df[node] = self.random.normal(loc=0, scale=1, size=n)
+
+            # Normalize to veil marginalized information
+            df[node] = (df[node] - df[node].mean())/df[node].std()
+
         return df
 
     def save(self):

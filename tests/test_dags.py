@@ -53,3 +53,8 @@ class TestRandomDAG(unittest.TestCase):
         self.assertIn(('g1_f0', 'g0_f1'), structural_zeros)
         self.assertIn(('g1_f1', 'g0_f1'), structural_zeros)
         self.assertIn(('g1_f1', 'g0_f0'), structural_zeros)
+
+    def test_check_varsortability(self):
+        df = self.model.sample(100)
+        np.testing.assert_array_almost_equal(df.std(), 1.0)
+        np.testing.assert_array_almost_equal(df.mean(), 0.0)
