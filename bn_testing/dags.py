@@ -8,7 +8,7 @@ from itertools import (
     product,
 )
 
-from bn_testing.conditionals import ConditionalGaussian
+from bn_testing.conditionals import PolynomialModel
 from bn_testing.helpers import _generate_int_suffixes
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class GroupedGaussianBN(object):
         p (float): Erdös-Renyi probability
     """
 
-    def __init__(self, n_nodes, n_groups=1, p=0.01, random_state=10):
+    def __init__(self, n_nodes, n_groups=1, p=0.01, random_state=10, normalize=True):
 
         self.p = p
 
@@ -33,6 +33,7 @@ class GroupedGaussianBN(object):
         self.random = np.random.RandomState(random_state)
 
         self.group_names = self._generate_group_names(n_groups)
+        self.normalize = normalize
 
         self.groups = {
             group_name: self._generate_node_names(
@@ -134,9 +135,10 @@ class GroupedGaussianBN(object):
             parents = [node for node, _ in self.dag.in_edges(node)]
 
             if len(parents) > 0:
-                models[node] = ConditionalGaussian(
+                models[node] = PolynomialModel(
                     parents=parents,
-                    random_state=self.random_state)
+                    random=self.random,
+                )
         return models
 
     def sample(self, n):
@@ -147,11 +149,10 @@ class GroupedGaussianBN(object):
             if node in self.models:
                 df[node] = self.models[node].sample(df)
             else:
-                df[node] = self.random.normal(loc=0, scale=1, size=n)
-
-            # Normalize to veil marginalized information
-            df[node] = (df[node] - df[node].mean())/df[node].std()
-
+                #df[node] = self.random.normal(loc=0, scale=1, size=n)
+                a = self.random.uniform(1, 5)
+                b = self.random.uniform(1, 5)
+                df[node] = self.random.beta(a, b, size=n)
         return df
 
     def save(self):

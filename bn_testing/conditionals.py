@@ -1,31 +1,39 @@
 import numpy as np
+from bn_testing.transformations.polynomials import RandomPolynomial
 
 
-class ConditionalDistribution(object):
+class NodeModel(object):
 
     def sample(self, df):
         raise NotImplementedError()
 
 
-class ConditionalGaussian(ConditionalDistribution):
+class PolynomialModel(NodeModel):
     """
     """
 
-    def __init__(self, parents, random_state=10, sigma=0.1):
+    def __init__(self, parents, random=None, sigma=0.02):
 
         self.parents = parents
+        self.random = random
 
-        self.random = np.random.RandomState(random_state)
-
-        self.weights = np.random.uniform(
-            low=-1,
-            high=1,
-            size=len(self.parents)
-        )
         self.sigma = sigma
 
-    def _get_mean(self, X):
-        return np.matmul(X, self.weights)
+        self.polynomial = RandomPolynomial(
+            n_monomials=len(self.parents),
+            degree=len(self.parents)+2,
+            n_variables=len(self.parents),
+            random=self.random
+        )
+
+    def _transform(self, X):
+        return self.polynomial.apply(X)
+
+    def _get_noise(self, n):
+        return self.random.normal(
+            loc=0,
+            size=n,
+            scale=self.sigma)
 
     def sample(self, df):
         """
@@ -33,6 +41,4 @@ class ConditionalGaussian(ConditionalDistribution):
         distribution.
         """
         X = df[self.parents].values
-        return self.random.normal(
-            loc=self._get_mean(X),
-            scale=self.sigma)
+        return self._transform(X) + self._get_noise(df.shape[0])

@@ -27,6 +27,8 @@ class TestRandomDAG(unittest.TestCase):
 
     def test_sampling(self):
         df = self.model.sample(100)
+        import pdb; pdb.set_trace()
+
         self.assertTupleEqual(df.shape, (100, 10))
         self.assertSetEqual(set(df.columns), set(self.model.nodes))
 
