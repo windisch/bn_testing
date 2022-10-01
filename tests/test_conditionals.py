@@ -2,15 +2,16 @@ import unittest
 import pandas as pd
 import numpy as np
 
-from bn_testing.conditionals import ConditionalGaussian
+from bn_testing.conditionals import PolynomialModel
 
 
 class TestModel(unittest.TestCase):
 
     def test_sample(self):
 
-        model = ConditionalGaussian(
-            parents=['A', 'B', 'C']
+        model = PolynomialModel(
+            parents=['A', 'B', 'C'],
+            random=np.random.RandomState(10),
         )
 
         df = pd.DataFrame(
