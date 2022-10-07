@@ -25,5 +25,5 @@ setup(
     long_description=(Path(__file__).parent / "README.md").read_text(),
     long_description_content_type='text/markdown',
     keywords="graphical models",
-    url="https://github.com/windisch/bn-test-bench",
+    url="https://github.com/windisch/bn_testing",
 )
