@@ -8,9 +8,17 @@ high-dimensional observed data.
 
 Set up the graphical model and sample  data
 ```python
-from bn_testing.dags import GroupedGaussianBN
+from bn_testing.models import BayesianNetwork
+from bn_testing.dags import ErdosReny
+from bn_testing.conditionals import PolynomialConditional
 
-model = GroupedGaussianBN(n_nodes=200, n_groups=10)
+
+model = BayesianNetwork(
+   n_nodes=100,
+   dag=ErdosReny(p=0.01),
+   conditionals=PolynomialConditional(max_terms=5)
+)
+
 df = model.sample(10000)
 ```
 The observations are stored in a `pandas.DataFrame` where the columns

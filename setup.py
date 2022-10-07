@@ -3,7 +3,7 @@ from pathlib import Path
 
 setup(
     name="bn_testing",
-    version="0.2.0",
+    version="0.3.0",
     packages=["bn_testing"],
 
     # dependencies
@@ -11,7 +11,7 @@ setup(
         'numpy>=1.20.0',
         'pandas>=1.3.0',
         'networkx>=2.5',
-        'tqdm>4.6.0',
+        'pymc>4.1.2',
     ],
     tests_require=[
         "pytest",
@@ -25,5 +25,5 @@ setup(
     long_description=(Path(__file__).parent / "README.md").read_text(),
     long_description_content_type='text/markdown',
     keywords="graphical models",
-    url="https://github.com/windisch/bn-test-bench",
+    url="https://github.com/windisch/bn_testing",
 )
