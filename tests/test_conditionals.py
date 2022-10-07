@@ -1,27 +1,31 @@
 import unittest
 import pandas as pd
 import numpy as np
+import pymc as pm
+from scipy.stats import normaltest
 
-from bn_testing.conditionals import PolynomialModel
+from bn_testing.conditionals import LinearConditional
 
 
-class TestModel(unittest.TestCase):
+class TestLinearConditionals(unittest.TestCase):
 
-    def test_sample(self):
+    def setUp(self):
+        self.x = pm.Normal.dist(mu=0, sigma=1)
+        self.y = pm.Beta.dist(alpha=2, beta=2)
+        self.conditional = LinearConditional()
 
-        model = PolynomialModel(
-            parents=['A', 'B', 'C'],
-            random=np.random.RandomState(10),
+    def test_transform(self):
+        z = self.conditional.make_transform([self.x, self.y])
+
+        X, Y, Z = pm.draw([self.x, self.y, z], 100)
+        np.testing.assert_array_almost_equal(
+            Z,
+            X+Y
         )
 
-        df = pd.DataFrame(
-            data={
-                'A': np.random.normal(size=100),
-                'B': np.random.normal(size=100),
-                'C': np.random.normal(size=100),
-                'D': np.random.normal(size=100),
-            }
-        )
-
-        Y = model.sample(df)
-        self.assertTupleEqual(Y.shape, (100,))
+    def test_make(self):
+        z = self.conditional.make([self.x, self.y])
+        X, Y, Z = pm.draw([self.x, self.y, z], 1000)
+        N = Z - (X+Y)
+        _, p = normaltest(N)
+        self.assertGreater(p, 1e-3)

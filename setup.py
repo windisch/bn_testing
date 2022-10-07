@@ -11,7 +11,7 @@ setup(
         'numpy>=1.20.0',
         'pandas>=1.3.0',
         'networkx>=2.5',
-        'tqdm>4.6.0',
+        'pymc>4.1.2',
     ],
     tests_require=[
         "pytest",

@@ -13,7 +13,7 @@ class TestRandomExponent(unittest.TestCase):
         random = np.random.RandomState(11)
 
         exp = _get_random_exponent(10, 3, random)
-        self.assertTrue(np.all(exp >=1))
+        self.assertTrue(np.all(exp >= 1))
         self.assertTrue(exp.sum(), 10)
         self.assertTupleEqual(exp.shape, (3,))
 

@@ -2,6 +2,16 @@
 Helpers
 """
 
+import numpy as np
+
+
+def _make_random_state(random):
+
+    if random is None:
+        return np.random.RandomState()
+    else:
+        return random
+
 
 def _generate_int_suffixes(prefix, n):
     return [

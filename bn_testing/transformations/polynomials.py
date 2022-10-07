@@ -26,10 +26,10 @@ class RandomPolynomial(object):
             _get_random_exponent(degree, n_variables, random) for _ in range(n_monomials)
         ]
         self.signs = random.choice([-1, 1], size=n_monomials)
-        self.coefs = self.signs * random.uniform(0, 10, size=n_monomials)
+        self.coefs = self.signs * random.uniform(1, 10, size=n_monomials)
 
     def apply(self, X):
         XX = np.zeros(X.shape[0])
         for exp, coef in zip(self.exponents, self.coefs):
-            XX = XX + coef*np.prod(X**exp, axis=1)
+            XX = XX + coef*np.prod(np.sin(np.pi*X**exp), axis=1)
         return sigmoid(XX)

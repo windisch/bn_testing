@@ -1,20 +1,16 @@
 import numpy as np
 import pandas as pd
 import logging
-from tqdm import tqdm
 import networkx as nx
-from itertools import (
-    combinations,
-    product,
-)
+import pymc as pm
 
-from bn_testing.conditionals import PolynomialModel
-from bn_testing.helpers import _generate_int_suffixes
+from abc import ABCMeta
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
 
-class GroupedGaussianBN(object):
+class BayesianNetwork(metaclass=ABCMeta):
     """
 
     Note:
@@ -25,135 +21,54 @@ class GroupedGaussianBN(object):
         p (float): Erdös-Renyi probability
     """
 
-    def __init__(self, n_nodes, n_groups=1, p=0.01, random_state=10, normalize=True):
-
-        self.p = p
-
+    def __init__(self, dag=None, conditionals=None, n_nodes=None, random_state=None):
         self.random_state = random_state
-        self.random = np.random.RandomState(random_state)
+        self.random = np.random.RandomState(self.random_state)
 
-        self.group_names = self._generate_group_names(n_groups)
-        self.normalize = normalize
+        self.dag_gen = dag
+        self.dag_gen.init(self.random)
+        self.conditionals = conditionals
+        self.n_nodes = n_nodes
 
-        self.groups = {
-            group_name: self._generate_node_names(
-                # TODO: Improve splitting
-                # How about specifying nodes_per_group and avoid
-                # that size of the last group is uncontrolled
-                n_nodes=int(n_nodes/n_groups),
-                group_name=group_name,
-            ) for group_name in self.group_names
-        }
+        self.generate()
 
+    def generate(self):
+        """
+        Generates the mod
+        """
         logger.info('Generate DAG')
-        self.dag = self._generate_dag()
+        self.dag = self.dag_gen.generate(self.n_nodes)
         logger.info('Generate models')
-        self.models = self._generate_models()
+        self.variables = self._generate_variables()
+
+    def generate_dag(self):
+        """
+        Returns a :py:class:`networkx.DiGraph` object.
+        """
+        raise NotImplementedError()
 
     @property
     def nodes(self):
-        return np.concatenate(
-            tuple([self.groups[g] for g in self.group_names])
-        )
+        return list(self.dag.nodes())
 
-    def _generate_group_names(self, n_groups):
-        return _generate_int_suffixes(
-            prefix="g",
-            n=n_groups,
-        )
+    def _generate_variables(self):
+        variables = {}
 
-    def _generate_node_names(self, n_nodes, group_name):
-
-        return _generate_int_suffixes(
-            prefix=group_name + "_f",
-            n=n_nodes
-        )
-
-    def _select_edges(self, edges_iter, p):
-
-        # TODO Use np.fromiter
-        edges = np.array([a for a in edges_iter])
-
-        selection = self.random.choice(
-            [False, True],
-            p=[1-self.p, self.p],
-            size=edges.shape[0]
-        )
-        return edges[selection]
-
-    def _get_nodes_of_group(self, group_name):
-
-        if group_name not in self.group_names:
-            raise ValueError('Unkown group {group_name}')
-        return [n for n in self.dag.nodes() if n.startswith(group_name)]
-
-    def get_subgraph_on_groups(self, groups):
-        all_nodes = [self._get_nodes_of_group(group) for group in groups]
-        nodes = [n for nodes in all_nodes for n in nodes]
-        return self.dag.subgraph(nodes)
-
-    def _generate_dag(self):
-
-        dag = nx.DiGraph()
-        dag.add_nodes_from(self.nodes)
-
-        all_edges = []
-
-        # Select random edges within the groups
-        for group, nodes in self.groups.items():
-
-            # combinations will only give you (A,B) but but not (B,A), is that intended ?
-            all_forward_edges_of_group = combinations(nodes, 2)
-            edges_selected = self._select_edges(all_forward_edges_of_group, self.p)
-            all_edges.extend(edges_selected)
-
-        # Select edges within subsequent groups
-        for group_from, group_to in combinations(self.group_names, 2):
-            edges_within = product(
-                self.groups[group_from],
-                self.groups[group_to],
-            )
-            edges_selected = self._select_edges(edges_within, self.p)
-            all_edges.extend(edges_selected)
-
-        dag.add_edges_from(all_edges)
-        return dag
-
-    def get_structural_zeros(self):
-        """
-        Returns edges that are by definition not used by the model.
-        """
-        structural_zeros = []
-        for group_to, group_from in combinations(self.group_names[::-1], 2):
-            for edge_from, edge_to in product(self.groups[group_to], self.groups[group_from]):
-                structural_zeros.append((edge_from, edge_to))
-        return structural_zeros
-
-    def _generate_models(self):
-        models = {}
-        for node in self.dag.nodes():
-            parents = [node for node, _ in self.dag.in_edges(node)]
+        for node in nx.topological_sort(self.dag):
+            parents = [variables[node] for node, _ in self.dag.in_edges(node)]
 
             if len(parents) > 0:
-                models[node] = PolynomialModel(
-                    parents=parents,
-                    random=self.random,
-                )
-        return models
+                variables[node] = self.conditionals.make(parents)
+            else:
+                # TODO
+                variables[node] = pm.Beta.dist(alpha=2, beta=2)
+
+        return variables
 
     def sample(self, n):
-
-        df = pd.DataFrame()
-
-        for node in tqdm(self.nodes):
-            if node in self.models:
-                df[node] = self.models[node].sample(df)
-            else:
-                #df[node] = self.random.normal(loc=0, scale=1, size=n)
-                a = self.random.uniform(1, 5)
-                b = self.random.uniform(1, 5)
-                df[node] = self.random.beta(a, b, size=n)
+        data = pm.draw([self.variables[n] for n in self.nodes], draws=n)
+        df = pd.DataFrame(
+            data=np.array(data).T,
+            columns=self.nodes
+        )
         return df
-
-    def save(self):
-        raise NotImplementedError()
