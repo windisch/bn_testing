@@ -5,7 +5,8 @@ import networkx as nx
 import pymc as pm
 
 from abc import ABCMeta
-from tqdm import tqdm
+
+from bn_testing.helpers import sigmoid
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,10 @@ class BayesianNetwork(metaclass=ABCMeta):
 
         self.dag_gen = dag
         self.dag_gen.init(self.random)
+
         self.conditionals = conditionals
+        self.conditionals.init(self.random)
+
         self.n_nodes = n_nodes
 
         self.generate()
@@ -41,12 +45,6 @@ class BayesianNetwork(metaclass=ABCMeta):
         logger.info('Generate models')
         self.variables = self._generate_variables()
 
-    def generate_dag(self):
-        """
-        Returns a :py:class:`networkx.DiGraph` object.
-        """
-        raise NotImplementedError()
-
     @property
     def nodes(self):
         return list(self.dag.nodes())
@@ -58,14 +56,19 @@ class BayesianNetwork(metaclass=ABCMeta):
             parents = [variables[node] for node, _ in self.dag.in_edges(node)]
 
             if len(parents) > 0:
-                variables[node] = self.conditionals.make(parents)
+                variables[node] = sigmoid(self.conditionals(parents))
             else:
                 # TODO
-                variables[node] = pm.Beta.dist(alpha=2, beta=2)
+                variables[node] = pm.Beta.dist(
+                    alpha=self.random.uniform(1, 5),
+                    beta=self.random.uniform(1, 5),
+                )
 
         return variables
 
     def sample(self, n):
+        """
+        """
         data = pm.draw([self.variables[n] for n in self.nodes], draws=n)
         df = pd.DataFrame(
             data=np.array(data).T,

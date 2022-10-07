@@ -4,10 +4,13 @@ import numpy as np
 
 from bn_testing.models import BayesianNetwork
 from bn_testing.dags import ErdosReny
-from bn_testing.conditionals import LinearConditional
+from bn_testing.conditionals import (
+    LinearConditional,
+    PolynomialConditional,
+)
 
 
-class TestErdosReny(unittest.TestCase):
+class TestLinearErdosReny(unittest.TestCase):
 
     def setUp(self):
         self.model = BayesianNetwork(
@@ -34,6 +37,22 @@ class TestErdosReny(unittest.TestCase):
 
         for n in self.model.nodes:
             self.assertIn(n, self.model.variables)
+
+    def test_sampling(self):
+        df = self.model.sample(100)
+        self.assertTupleEqual(df.shape, (100, 10))
+        self.assertSetEqual(set(df.columns), set(self.model.nodes))
+
+
+class TestPolynomialErdosReny(unittest.TestCase):
+
+    def setUp(self):
+        self.model = BayesianNetwork(
+            n_nodes=10,
+            dag=ErdosReny(p=0.1),
+            conditionals=PolynomialConditional(),
+            random_state=10
+        )
 
     def test_sampling(self):
         df = self.model.sample(100)
