@@ -36,8 +36,8 @@ class TestLinearConditionals(unittest.TestCase):
             X+Y
         )
 
-    def test_make(self):
-        z = self.conditional.make([self.x, self.y])
+    def test_call(self):
+        z = self.conditional([self.x, self.y])
         X, Y, Z = pm.draw([self.x, self.y, z], 1000)
         N = Z - (X+Y)
         _, p = normaltest(N)
