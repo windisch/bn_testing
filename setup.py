@@ -1,9 +1,13 @@
 from setuptools import setup
 from pathlib import Path
 
+
+with open('VERSION') as f:
+    version = f.read()
+
 setup(
     name="bn_testing",
-    version="0.3.1",
+    version=version,
     packages=["bn_testing"],
     python_requires='>=3.8.0',
 

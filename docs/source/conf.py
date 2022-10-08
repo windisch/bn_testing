@@ -2,19 +2,15 @@
 
 # -- Project information
 
-try:
-    from bn_testing import __version__ as version
-except ImportError:
-        pass
-else:
-    release = version
+
+with open('../../VERSION') as f:
+    version = f.read()
 
 
+release = version
 project = 'bn_testing'
 copyright = '2022'
 author = 'Tobias Windisch'
-
-release = version
 
 # -- General configuration
 
