@@ -2,12 +2,19 @@
 
 # -- Project information
 
-project = 'Lumache'
-copyright = '2021, Graziella'
-author = 'Graziella'
+try:
+    from bn_testing import __version__ as version
+except ImportError:
+        pass
+else:
+    release = version
 
-release = '0.1'
-version = '0.1.0'
+
+project = 'bn_testing'
+copyright = '2022'
+author = 'Tobias Windisch'
+
+release = version
 
 # -- General configuration
 
@@ -22,6 +29,11 @@ extensions = [
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
     'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
+    "matplotlib": ("https://matplotlib.org", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "sklearn": ("https://scikit-learn.org/stable", None),
+    "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
 }
 intersphinx_disabled_domains = ['std']
 
