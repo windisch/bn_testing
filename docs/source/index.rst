@@ -24,7 +24,7 @@ Set up the graphical model and sample  data
    
    df = model.sample(10000)
 
-The observations are stored in a `pandas.DataFrame` where the columns
+The observations are stored in a :py:class:`pandas.DataFrame` where the columns
 are the nodes of the DAG and each row is an observation. The
 underlying DAG of the graphical model can be accessed with `model.dag`
 
