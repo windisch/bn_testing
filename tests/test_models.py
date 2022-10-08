@@ -4,6 +4,8 @@ import numpy as np
 
 from bn_testing.models import BayesianNetwork
 from bn_testing.dags import ErdosReny
+
+from bn_testing.transformations import Linear
 from bn_testing.conditionals import (
     LinearConditional,
     PolynomialConditional,
@@ -32,11 +34,10 @@ class TestLinearErdosReny(unittest.TestCase):
             ]
         )
 
-    def test_variables(self):
-        self.assertIsInstance(self.model.variables, dict)
-
-        for n in self.model.nodes:
-            self.assertIn(n, self.model.variables)
+    def test_transformations(self):
+        self.assertIsInstance(self.model.transformations, dict)
+        for t in self.model.transformations.values():
+            self.assertIsInstance(t, Linear)
 
     def test_sampling(self):
         df = self.model.sample(100)

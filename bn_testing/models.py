@@ -43,33 +43,48 @@ class BayesianNetwork(metaclass=ABCMeta):
         logger.info('Generate DAG')
         self.dag = self.dag_gen.generate(self.n_nodes)
         logger.info('Generate models')
-        self.variables = self._generate_variables()
+        self.transformations = self._build_transformations()
 
     @property
     def nodes(self):
         return list(self.dag.nodes())
 
-    def _generate_variables(self):
+    def _build_transformations(self):
+        transformations = {}
+        for node in nx.topological_sort(self.dag):
+            n_parents = self.dag.in_degree(node)
+            if n_parents > 0:
+                transformations[node] = self.conditionals.make_transformation(
+                    n_parents=n_parents,
+                )
+        return transformations
+
+    def _build_variable(self, node, parents):
+        if len(parents) > 0:
+            var = sigmoid(
+                self.transformations[node].apply(parents) + self.conditionals.make_noise()
+            )
+        else:
+            var = self.conditionals.make_source()
+        return var
+
+    def _build_variables(self):
         variables = {}
 
         for node in nx.topological_sort(self.dag):
-            parents = [variables[node] for node, _ in self.dag.in_edges(node)]
-
-            if len(parents) > 0:
-                variables[node] = sigmoid(self.conditionals(parents))
-            else:
-                # TODO
-                variables[node] = pm.Beta.dist(
-                    alpha=self.random.uniform(1, 5),
-                    beta=self.random.uniform(1, 5),
-                )
-
+            parents = [variables[n] for n, _ in self.dag.in_edges(node)]
+            variables[node] = self._build_variable(node, parents)
         return variables
 
     def sample(self, n):
         """
         """
-        data = pm.draw([self.variables[n] for n in self.nodes], draws=n)
+
+        logger.info('Build variables')
+        variables = self._build_variables()
+
+        logger.info('Start sampling')
+        data = pm.draw([variables[n] for n in self.nodes], draws=n)
         df = pd.DataFrame(
             data=np.array(data).T,
             columns=self.nodes
