@@ -1,5 +1,9 @@
 # BN testing
 
+[![Documentation Status](https://readthedocs.org/projects/bn_testing/badge/?version=latest)](https://bn_testing.readthedocs.io/en/latest/?badge=latest)
+[![PyPI](https://img.shields.io/pypi/v/bn_testing)](https://pypi.org/project/bn_testing/)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/bn_testing)
+
 A test framework to evaluate methods that learn Bayesian Networks from
 high-dimensional observed data.
 
