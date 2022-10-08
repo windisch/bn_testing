@@ -2,8 +2,8 @@ name: Publish package to PyPi
 
 on: 
   pull_request:
-    #types:
-    #  - closed
+    types:
+      - closed
     branches:
       - main
 
