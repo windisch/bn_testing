@@ -10,7 +10,7 @@ setup(
     version=version,
     packages=["bn_testing"],
     python_requires='>=3.8.0',
-
+    python_version='3.10',
     # dependencies
     install_requires=[
         'numpy>=1.20.0',
