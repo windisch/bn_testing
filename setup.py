@@ -5,6 +5,7 @@ setup(
     name="bn_testing",
     version="0.3.1",
     packages=["bn_testing"],
+    python_requires='>=3.8.0',
 
     # dependencies
     install_requires=[
