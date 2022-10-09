@@ -29,8 +29,8 @@ class TestLinearErdosReny(unittest.TestCase):
         np.testing.assert_array_equal(
             self.model.nodes,
             [
-                'f_00', 'f_01', 'f_02', 'f_03', 'f_04',
-                'f_05', 'f_06', 'f_07', 'f_08', 'f_09',
+                'f00', 'f01', 'f02', 'f03', 'f04',
+                'f05', 'f06', 'f07', 'f08', 'f09',
             ]
         )
 
@@ -43,6 +43,26 @@ class TestLinearErdosReny(unittest.TestCase):
         df = self.model.sample(100)
         self.assertTupleEqual(df.shape, (100, 10))
         self.assertSetEqual(set(df.columns), set(self.model.nodes))
+
+
+class TestModifications(unittest.TestCase):
+
+    def setUp(self):
+        self.model = BayesianNetwork(
+            n_nodes=10,
+            dag=ErdosReny(p=0.1),
+            conditionals=LinearConditional(),
+            random_state=10
+        )
+
+    def test_modification(self):
+        transform_orig = self.model.transformations['f07']
+
+        self.model.modify_transformation('f07')
+        transform_new = self.model.transformations['f07']
+        self.assertTrue(
+            np.all(transform_new.coefs != transform_orig.coefs)
+        )
 
 
 class TestPolynomialErdosReny(unittest.TestCase):

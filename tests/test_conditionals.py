@@ -15,14 +15,14 @@ class TestLinearConditionals(unittest.TestCase):
         self.y = pm.Beta.dist(alpha=2, beta=2)
         self.conditional = LinearConditional()
         self.conditional.init(np.random.RandomState(10))
-        self.transformation = self.conditional(2)
+        self.transformation = self.conditional(['x', 'y'])
 
     def test_transform(self):
 
         w_x = self.transformation.coefs[0]
         w_y = self.transformation.coefs[1]
 
-        z = self.transformation.apply([self.x, self.y])
+        z = self.transformation.apply({'x': self.x, 'y': self.y})
 
         X, Y, Z = pm.draw([self.x, self.y, z], 100)
         np.testing.assert_array_almost_equal(

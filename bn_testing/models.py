@@ -60,7 +60,7 @@ class BayesianNetwork(metaclass=ABCMeta):
             conditionals = self.conditionals
         else:
             conditionals.init(self.random)
-        self.transformations[node] = conditionals(self.dag.in_degree(node))
+        self.transformations[node] = conditionals(self._get_parents(node))
 
     @property
     def nodes(self):

@@ -17,7 +17,7 @@ class DAG(metaclass=ABCMeta):
 
     def make_node_names(self, n_nodes):
         return _generate_int_suffixes(
-            prefix='f_',
+            prefix='f',
             n=n_nodes)
 
     def show(self, dag):
