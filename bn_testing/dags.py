@@ -17,8 +17,13 @@ class DAG(metaclass=ABCMeta):
 
     def make_node_names(self, n_nodes):
         return _generate_int_suffixes(
-            prefix='f_',
+            prefix='f',
             n=n_nodes)
+
+    def show(self, dag):
+        pos = nx.spring_layout(dag, seed=self.random)
+        nx.draw_networkx_nodes(dag, pos=pos, node_size=100)
+        nx.draw_networkx_edges(dag, pos=pos)
 
 
 class ScaleFree(DAG):
@@ -47,6 +52,11 @@ class ScaleFree(DAG):
 
 
 class ErdosReny(DAG):
+    """
+
+    Args:
+        p (float): Erdös-Renyi probability
+    """
 
     def __init__(self, p=0.1):
         self.p = p

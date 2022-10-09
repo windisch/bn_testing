@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 with open('VERSION') as f:
-    version = f.read()
+    version = f.read().strip()
 
 setup(
     name="bn_testing",
@@ -20,6 +20,8 @@ setup(
     ],
     tests_require=[
         "pytest",
+        "sphinx",
+        "sphinx_rtd_theme",
     ],
 
     # metadata for upload to PyPI

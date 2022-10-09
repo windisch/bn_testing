@@ -1,7 +1,10 @@
 import numpy as np
 import pymc as pm
 
-from bn_testing.helpers import sigmoid
+from bn_testing.transformations import (
+    Linear,
+    Polynomial,
+)
 
 
 class Conditional(object):
@@ -9,14 +12,13 @@ class Conditional(object):
     Base class of conditional distributions
     """
 
-    def make_transform(self, parents):
+    def make_transformation(self, parents):
         """
         Args:
-            parents(list): List of :py:class:`pymc.Distribution` objects that represent the
-            conditional variables
+            parents (list): Name of the parent nodes.
 
         Returns:
-            pymc.Distribution: The conditional distribution
+            bn_testing.transformations.Transformation: A transformation
         """
         raise NotImplementedError()
 
@@ -26,10 +28,16 @@ class Conditional(object):
     def make_noise(self):
         return pm.Normal.dist(mu=0, sigma=0.1)
 
+    def make_source(self):
+        return pm.Beta.dist(
+            alpha=self.random.uniform(1, 5),
+            beta=self.random.uniform(1, 5),
+        )
+
     def __call__(self, parents):
         """
         """
-        return self.make_transform(parents) + self.make_noise()
+        return self.make_transformation(parents)
 
 
 class LinearConditional(Conditional):
@@ -41,20 +49,19 @@ class LinearConditional(Conditional):
         self.coef_min = coef_min
         self.coef_max = coef_max
 
-    def make_transform(self, parents):
-        coefs = self.random.uniform(self.coef_min, self.coef_max, size=len(parents))
-        signs = self.random.choice([-1, 1], size=len(parents))
-        parents = np.array(parents)
-
-        return np.sum(parents*coefs*signs)
+    def make_transformation(self, parents):
+        n_parents = len(parents)
+        signs = self.random.choice([-1, 1], size=n_parents)
+        coefs = signs*self.random.uniform(self.coef_min, self.coef_max, size=n_parents)
+        return Linear(parents, coefs)
 
 
 class PolynomialConditional(Conditional):
     """
-    Polynomial conditionals
+    Conditional that builds polynomial transformations
     """
 
-    def __init__(self, min_terms=1, max_terms=2, max_degree_add=10):
+    def __init__(self, min_terms=1, max_terms=5, max_degree_add=10):
         self.min_terms = min_terms
         self.max_terms = max_terms
         self.max_degree_add = max_degree_add
@@ -79,23 +86,19 @@ class PolynomialConditional(Conditional):
             [1/n_variables]*n_variables
         )
 
-    def make_transform(self, parents):
+    def make_transformation(self, parents):
+        n_parents = len(parents)
 
-        n_monomials = self.random.randint(self.min_terms, self.max_terms)
-        degree = len(parents)+self.random.randint(1, self.max_degree_add)
+        n_monomials = self.random.randint(self.min_terms, self.max_terms+1)
+        degree = n_parents+self.random.randint(1, self.max_degree_add)
 
         exponents = [
             self._get_random_exponent(
                 degree=degree,
-                n_variables=len(parents),
+                n_variables=n_parents,
             ) for _ in range(n_monomials)
         ]
 
         signs = self.random.choice([-1, 1], size=n_monomials)
         coefs = signs * self.random.uniform(1, 10, size=n_monomials)
-
-        return np.sum([
-            sigmoid(
-                coef*np.prod(np.power(parents, exp))
-            ) for coef, exp in zip(coefs, exponents)
-        ])
+        return Polynomial(parents, exponents, coefs)
