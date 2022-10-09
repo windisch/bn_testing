@@ -20,6 +20,8 @@ setup(
     ],
     tests_require=[
         "pytest",
+        "sphinx",
+        "sphinx_rtd_theme",
     ],
 
     # metadata for upload to PyPI
