@@ -89,7 +89,7 @@ class PolynomialConditional(Conditional):
     def make_transformation(self, parents):
         n_parents = len(parents)
 
-        n_monomials = self.random.randint(self.min_terms, self.max_terms)
+        n_monomials = self.random.randint(self.min_terms, self.max_terms+1)
         degree = n_parents+self.random.randint(1, self.max_degree_add)
 
         exponents = [

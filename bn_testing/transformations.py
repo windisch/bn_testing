@@ -25,7 +25,7 @@ class Linear(Transformation):
         return np.sum(parents*self.coefs)
 
     def __repr__(self):
-        return "+".join(
+        return " + ".join(
             ["{:.1f}*{}".format(c, p) for c, p in zip(self.coefs, self.parents)]
         )
 
@@ -46,7 +46,7 @@ class Polynomial(Transformation):
         ])
 
     def __repr__(self):
-        return "+".join(
+        return " + ".join(
             ["{:.1f}*{}".format(
                 c,
                 "*".join([f"{p}^{e}" for p, e in zip(self.parents, exp.ravel().astype(str).tolist())])

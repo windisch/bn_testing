@@ -71,7 +71,7 @@ class BayesianNetwork(metaclass=ABCMeta):
 
     def _build_transformations(self):
         transformations = {}
-        for node in nx.topological_sort(self.dag):
+        for node in self.nodes:
             parents = self._get_parents(node)
             if len(parents) > 0:
                 transformations[node] = self.conditionals.make_transformation(
