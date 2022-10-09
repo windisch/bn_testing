@@ -12,10 +12,10 @@ class Conditional(object):
     Base class of conditional distributions
     """
 
-    def make_transformation(self, n_parents):
+    def make_transformation(self, parents):
         """
         Args:
-            n_parents (int): Number of parents
+            parents (list): Name of the parent nodes.
 
         Returns:
             bn_testing.transformations.Transformation: A transformation
@@ -34,10 +34,10 @@ class Conditional(object):
             beta=self.random.uniform(1, 5),
         )
 
-    def __call__(self, n_parents):
+    def __call__(self, parents):
         """
         """
-        return self.make_transformation(n_parents)
+        return self.make_transformation(parents)
 
 
 class LinearConditional(Conditional):
@@ -49,10 +49,11 @@ class LinearConditional(Conditional):
         self.coef_min = coef_min
         self.coef_max = coef_max
 
-    def make_transformation(self, n_parents):
+    def make_transformation(self, parents):
+        n_parents = len(parents)
         signs = self.random.choice([-1, 1], size=n_parents)
         coefs = signs*self.random.uniform(self.coef_min, self.coef_max, size=n_parents)
-        return Linear(coefs)
+        return Linear(parents, coefs)
 
 
 class PolynomialConditional(Conditional):
@@ -85,7 +86,8 @@ class PolynomialConditional(Conditional):
             [1/n_variables]*n_variables
         )
 
-    def make_transformation(self, n_parents):
+    def make_transformation(self, parents):
+        n_parents = len(parents)
 
         n_monomials = self.random.randint(self.min_terms, self.max_terms)
         degree = n_parents+self.random.randint(1, self.max_degree_add)
@@ -99,4 +101,4 @@ class PolynomialConditional(Conditional):
 
         signs = self.random.choice([-1, 1], size=n_monomials)
         coefs = signs * self.random.uniform(1, 10, size=n_monomials)
-        return Polynomial(exponents, coefs)
+        return Polynomial(parents, exponents, coefs)
