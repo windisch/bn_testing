@@ -5,8 +5,8 @@ A test framework to evaluate methods that learn Bayesian Networks from
 high-dimensional observed data.
 
 
-Sampling
---------
+Quick start
+-----------
 
 Set up the graphical model and sample  data
 
@@ -37,5 +37,8 @@ Contents
 
 .. toctree::
 
-   usage
+   install
+   construction
+   dags
+   conditionals
    api

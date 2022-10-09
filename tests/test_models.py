@@ -44,6 +44,12 @@ class TestLinearErdosReny(unittest.TestCase):
         self.assertTupleEqual(df.shape, (100, 10))
         self.assertSetEqual(set(df.columns), set(self.model.nodes))
 
+    def test_order_of_transformations(self):
+        nodes = list(self.model.transformations.keys())
+        nodes_orig = nodes.copy()
+        nodes.sort()
+        self.assertListEqual(nodes, nodes_orig)
+
 
 class TestModifications(unittest.TestCase):
 
