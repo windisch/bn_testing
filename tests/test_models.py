@@ -1,6 +1,7 @@
 import unittest
 import networkx as nx
 import numpy as np
+from scipy.stats import ks_2samp
 
 from bn_testing.models import BayesianNetwork
 from bn_testing.dags import ErdosReny
@@ -85,3 +86,10 @@ class TestPolynomialErdosReny(unittest.TestCase):
         df = self.model.sample(100)
         self.assertTupleEqual(df.shape, (100, 10))
         self.assertSetEqual(set(df.columns), set(self.model.nodes))
+
+    def test_source_distribution(self):
+        df_a = self.model.sample(1000)
+        df_b = self.model.sample(1000)
+
+        p = ks_2samp(df_a['f01'], df_b['f01']).pvalue
+        self.assertGreater(p, 0.05)
