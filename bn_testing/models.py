@@ -46,6 +46,7 @@ class BayesianNetwork(metaclass=ABCMeta):
         self.dag = self.dag_gen.generate(self.n_nodes)
         logger.info('Generate models')
         self.transformations = self._build_transformations()
+        self.sources = self._build_sources()
 
     @property
     def edges(self):
@@ -68,6 +69,16 @@ class BayesianNetwork(metaclass=ABCMeta):
 
     def _get_parents(self, node):
         return [n for n, _ in self.dag.in_edges(node)]
+
+    def _build_sources(self):
+        """
+        Builds PyMC variables that correspond to source nodes in the DAG.
+        """
+        sources = {}
+        for node in self.nodes:
+            if self.dag.in_degree(node) == 0:
+                sources[node] = self.conditionals.make_source()
+        return sources
 
     def _build_transformations(self):
         transformations = {}
@@ -94,7 +105,9 @@ class BayesianNetwork(metaclass=ABCMeta):
                 self.transformations[node].apply(parents_mapping) + self.conditionals.make_noise()
             )
         else:
-            var = self.conditionals.make_source()
+            # As generating the source introduces some randomness we would like to fix, we have to
+            # build the source variables only once and reuse them here.
+            var = self.sources[node]
         return var
 
     def _build_variables(self):
