@@ -14,7 +14,7 @@ jobs:
   test_docs:
     uses: ./.github/workflows/test_docs.yml@main
   test_package:
-    uses: ./.github/workflows/test_package.yml
+    uses: ./.github/workflows/test_package.yml@main
   publish-package:
     needs: [test_docs, test_package]
     runs-on: ubuntu-latest
