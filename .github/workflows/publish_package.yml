@@ -12,9 +12,9 @@ on:
 jobs:
 
   test_docs:
-    uses: ./.github/workflows/test_docs.yaml@main
+    uses: ./.github/workflows/test_docs.yaml
   test_package:
-    uses: ./.github/workflows/test_package.yaml@main
+    uses: ./.github/workflows/test_package.yaml
   publish-package:
     needs: [test_docs, test_package]
     runs-on: ubuntu-latest
