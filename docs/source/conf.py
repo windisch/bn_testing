@@ -1,8 +1,5 @@
 # Configuration file for the Sphinx documentation builder.
 
-# -- Project information
-
-
 with open('../../VERSION') as f:
     version = f.read()
 
@@ -43,3 +40,22 @@ html_theme = 'sphinx_rtd_theme'
 
 # -- Options for EPUB output
 epub_show_urls = 'footnote'
+
+
+try:
+    import os
+    import shutil
+    from sphinx.ext import apidoc
+
+    curdir = os.path.dirname(__file__)
+    dir_api = os.path.join(curdir, 'generated')
+    dir_module = os.path.join(curdir, '../../bn_testing/')
+
+    shutil.rmtree(dir_api, ignore_errors=True)
+
+    cmd = f"-f -o {dir_api} {dir_module}"
+    apidoc.main(cmd.split(' '))
+
+
+except Exception as e:
+    print("Failed to build api-docs: {}".format(e))

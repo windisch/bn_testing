@@ -1,7 +1,5 @@
 API
 ===
 
-.. autosummary::
-   :toctree: generated
-
-   bn_testing
+.. toctree::
+   generated/modules.rst
