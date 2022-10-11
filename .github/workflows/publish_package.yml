@@ -11,9 +11,9 @@ on:
 
 jobs:
   test_docs:
-    uses: windisch/bn_testing/.github/workflows/test_docs.yaml@main
+    uses: windisch/bn_testing/.github/workflows/test_docs.yml@main
   test_package:
-    uses: windisch/bn_testing/.github/workflows/test_package.yaml@main
+    uses: windisch/bn_testing/.github/workflows/test_package.yml@main
   publish-package:
     needs: [test_docs, test_package]
     runs-on: ubuntu-latest
