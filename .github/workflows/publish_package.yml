@@ -1,23 +1,11 @@
 name: Publish package to PyPi
 
 on: 
-  workflow_run:
-    workflows: 
-      - "Test package"
-      - "Test docs"
-    branches:
-      - main
-    types:
-      - completed
-  pull_request:
-    types:
-      - closed
-    branches:
-      - main
+  push:
+    branches: [ "main" ]
 
 jobs:
   publish-package:
-
     runs-on: ubuntu-latest
 
     steps:
