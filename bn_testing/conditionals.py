@@ -4,6 +4,7 @@ import pymc as pm
 from bn_testing.transformations import (
     Linear,
     Polynomial,
+    Constant,
 )
 
 
@@ -26,7 +27,7 @@ class Conditional(object):
         self.random = random
 
     def make_noise(self):
-        return pm.Normal.dist(mu=0, sigma=0.1)
+        return pm.Normal.dist(mu=0, sigma=0.05)
 
     def make_source(self):
         return pm.Beta.dist(
@@ -102,3 +103,18 @@ class PolynomialConditional(Conditional):
         signs = self.random.choice([-1, 1], size=n_monomials)
         coefs = signs * self.random.uniform(1, 10, size=n_monomials)
         return Polynomial(parents, exponents, coefs)
+
+
+class ConstantConditional(Conditional):
+    """
+    A conditional yielding constant values. Used in intervensions and to compute causal effects.
+    """
+
+    def __init__(self, value):
+        self.value = value
+
+    def make_transformation(self, parents):
+        return Constant(parents, self.value)
+
+    def make_noise(self):
+        return pm.math.constant(0)

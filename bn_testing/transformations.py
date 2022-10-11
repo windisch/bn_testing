@@ -1,4 +1,5 @@
 import numpy as np
+import pymc as pm
 from bn_testing.helpers import sigmoid
 
 
@@ -40,10 +41,11 @@ class Polynomial(Transformation):
     def apply(self, parents_mapping):
         parents = self.get_vars_from_dict(parents_mapping)
         return np.sum([
-            sigmoid(
-                coef*np.prod(np.power(parents, exp))
-            ) for coef, exp in zip(self.coefs, self.exponents)
-        ])
+                sigmoid(
+                    coef*np.prod(np.power(parents, exp))
+                ) for coef, exp in zip(self.coefs, self.exponents)
+            ]
+        )
 
     def __repr__(self):
         return " + ".join(
@@ -57,8 +59,8 @@ class Polynomial(Transformation):
 class Constant(Transformation):
 
     def __init__(self, parents, value):
-        super(Constant, self).__init__(parents)
+        Transformation.__init__(self, parents)
         self.value = value
 
     def apply(self, parents_mapping):
-        return self.value
+        return pm.math.constant(self.value)
