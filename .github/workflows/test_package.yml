@@ -8,7 +8,7 @@ on:
   #  branches: [ "main" ]
   #pull_request:
   #  branches: [ "main" ]
-  workflow_call: [
+  workflow_call:
     inputs: []
 
 jobs:
