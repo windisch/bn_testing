@@ -1,7 +1,7 @@
 Construction
 ============
 
-.. code:: ipython3
+.. code:: python
 
     import matplotlib.pyplot as plt
     import networkx as nx
@@ -12,13 +12,13 @@ To get started, we essentially need two things:
 -  A graph construction method (see :doc:`dags`)
 -  A construction method for the conditionals (see :doc:`conditionals`)
 
-.. code-block:: ipython3
+.. code-block:: python
 
     from bn_testing.models import BayesianNetwork
     from bn_testing.dags import ErdosReny
     from bn_testing.conditionals import PolynomialConditional
 
-.. code-block:: ipython3
+.. code-block:: python
 
     model = BayesianNetwork(
         n_nodes=20,

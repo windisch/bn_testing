@@ -1,6 +1,14 @@
 name: Publish package to PyPi
 
 on: 
+  workflow_runs:
+    workflows: 
+      - "Test package"
+      - "Test docs"
+    branches:
+      - main
+    types:
+      - completed
   pull_request:
     types:
       - closed
