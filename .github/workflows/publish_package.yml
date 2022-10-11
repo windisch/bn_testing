@@ -1,12 +1,13 @@
 name: Publish package to PyPi
 
 on: 
+  # pull_request:
+  #   types:
+  #     - closed
+  #   branches:
+  #     - main
   pull_request:
-    types:
-      # - closed
-      - opened
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
 
