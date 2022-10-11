@@ -1,22 +1,11 @@
 name: Publish package to PyPi
 
 on: 
-  # pull_request:
-  #   types:
-  #     - closed
-  #   branches:
-  #     - main
-  pull_request:
+  push:
     branches: [ "main" ]
-  workflow_call: []
 
 jobs:
-  test_docs:
-    uses: ./.github/workflows/test_docs.yml
-  test_package:
-    uses: ./.github/workflows/test_package.yml
   publish-package:
-    needs: [test_docs, test_package]
     runs-on: ubuntu-latest
 
     steps:

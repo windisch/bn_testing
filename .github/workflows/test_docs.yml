@@ -4,11 +4,8 @@
 name: Test docs
 
 on:
-  #push:
-  #  branches: [ "main" ]
-  #pull_request:
-  #  branches: [ "main" ]
-  workflow_call: []
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   run-tests:

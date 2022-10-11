@@ -4,12 +4,8 @@
 name: Test package
 
 on:
-  #push:
-  #  branches: [ "main" ]
-  #pull_request:
-  #  branches: [ "main" ]
-  workflow_call:
-    inputs: []
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   run-tests:
