@@ -62,10 +62,11 @@ class PolynomialConditional(Conditional):
     Conditional that builds polynomial transformations
     """
 
-    def __init__(self, min_terms=1, max_terms=5, max_degree_add=10):
+    def __init__(self, min_terms=1, max_terms=5, max_degree_add=10, with_tanh=True):
         self.min_terms = min_terms
         self.max_terms = max_terms
         self.max_degree_add = max_degree_add
+        self.with_tanh = with_tanh
 
     def _get_random_exponent(self, degree, n_variables):
         """
@@ -102,7 +103,12 @@ class PolynomialConditional(Conditional):
 
         signs = self.random.choice([-1, 1], size=n_monomials)
         coefs = signs * self.random.uniform(1, 10, size=n_monomials)
-        return Polynomial(parents, exponents, coefs)
+        return Polynomial(
+            parents=parents,
+            exponents=exponents,
+            coefs=coefs,
+            with_tanh=self.with_tanh
+        )
 
 
 class ConstantConditional(Conditional):
