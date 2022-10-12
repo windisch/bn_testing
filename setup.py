@@ -5,24 +5,21 @@ from pathlib import Path
 with open('VERSION') as f:
     version = f.read().strip()
 
+with open('requirements.txt') as f:
+    install_requirements = f.read().splitlines()
+
 setup(
     name="bn_testing",
     version=version,
     packages=["bn_testing"],
     python_requires='>=3.8.0',
     # dependencies
-    install_requires=[
-        'numpy>=1.20.0',
-        'pandas>=1.3.0',
-        'networkx>=2.5',
-        'pymc>4.1.2',
-    ],
+    install_requires=install_requirements,
     tests_require=[
         "pytest",
         "sphinx",
         "sphinx_rtd_theme",
     ],
-
     # metadata for upload to PyPI
     author="Tobias Windisch",
     author_email="tobias.windisch@posteo.de",

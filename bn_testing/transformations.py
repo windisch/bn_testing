@@ -1,4 +1,5 @@
 import numpy as np
+import pymc as pm
 from bn_testing.helpers import sigmoid
 
 
@@ -32,18 +33,30 @@ class Linear(Transformation):
 
 class Polynomial(Transformation):
 
-    def __init__(self, parents, exponents, coefs):
+    def __init__(self, parents, exponents, coefs, with_tanh=True):
         Transformation.__init__(self, parents)
+        self.with_tanh = with_tanh
         self.exponents = np.array(exponents, dtype=int)
         self.coefs = coefs
+
+    def _compute_monomial(self, parents, exp, coef):
+        monomial = coef*np.prod(np.power(parents, exp))
+
+        if self.with_tanh:
+            return np.tanh(monomial)
+        else:
+            return monomial
 
     def apply(self, parents_mapping):
         parents = self.get_vars_from_dict(parents_mapping)
         return np.sum([
-            sigmoid(
-                coef*np.prod(np.power(parents, exp))
+            self._compute_monomial(
+                parents=parents,
+                exp=exp,
+                coef=coef
             ) for coef, exp in zip(self.coefs, self.exponents)
-        ])
+            ]
+        )
 
     def __repr__(self):
         return " + ".join(
@@ -57,8 +70,8 @@ class Polynomial(Transformation):
 class Constant(Transformation):
 
     def __init__(self, parents, value):
-        super(Constant, self).__init__(parents)
+        Transformation.__init__(self, parents)
         self.value = value
 
     def apply(self, parents_mapping):
-        return self.value
+        return pm.math.constant(self.value)

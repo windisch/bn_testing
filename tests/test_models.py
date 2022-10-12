@@ -1,24 +1,38 @@
 import unittest
 import networkx as nx
 import numpy as np
+import pymc as pm
 from scipy.stats import ks_2samp
 
 from bn_testing.models import BayesianNetwork
-from bn_testing.dags import ErdosReny
+from bn_testing.dags import (
+    ErdosReny,
+    DAG,
+)
 
 from bn_testing.transformations import Linear
 from bn_testing.conditionals import (
     LinearConditional,
     PolynomialConditional,
+    ConstantConditional,
 )
+
+
+class ToyDAG(DAG):
+    def __init__(self):
+        pass
+
+    def generate(self):
+        dag = nx.DiGraph()
+        dag.add_edges_from([['A', 'B'], ['B', 'D'], ['C', 'D'], ['D', 'E']])
+        return dag
 
 
 class TestLinearErdosReny(unittest.TestCase):
 
     def setUp(self):
         self.model = BayesianNetwork(
-            n_nodes=10,
-            dag=ErdosReny(p=0.1),
+            dag=ErdosReny(p=0.1, n_nodes=10),
             conditionals=LinearConditional(),
             random_state=10
         )
@@ -45,6 +59,14 @@ class TestLinearErdosReny(unittest.TestCase):
         self.assertTupleEqual(df.shape, (100, 10))
         self.assertSetEqual(set(df.columns), set(self.model.nodes))
 
+    def test_sampling_of_some_variables(self):
+        df = self.model.sample(100, nodes=['f00', 'f09'])
+        self.assertTupleEqual(df.shape, (100, 2))
+        self.assertListEqual(
+            df.columns.to_list(),
+            ['f00', 'f09'],
+        )
+
     def test_order_of_transformations(self):
         nodes = list(self.model.transformations.keys())
         nodes_orig = nodes.copy()
@@ -56,8 +78,7 @@ class TestModifications(unittest.TestCase):
 
     def setUp(self):
         self.model = BayesianNetwork(
-            n_nodes=10,
-            dag=ErdosReny(p=0.1),
+            dag=ErdosReny(p=0.1, n_nodes=10),
             conditionals=LinearConditional(),
             random_state=10
         )
@@ -76,8 +97,7 @@ class TestPolynomialErdosReny(unittest.TestCase):
 
     def setUp(self):
         self.model = BayesianNetwork(
-            n_nodes=10,
-            dag=ErdosReny(p=0.1),
+            dag=ErdosReny(p=0.1, n_nodes=10),
             conditionals=PolynomialConditional(),
             random_state=10
         )
@@ -93,3 +113,37 @@ class TestPolynomialErdosReny(unittest.TestCase):
 
         p = ks_2samp(df_a['f01'], df_b['f01']).pvalue
         self.assertGreater(p, 0.05)
+
+
+class TestCausalEffects(unittest.TestCase):
+
+    def setUp(self):
+        self.model = BayesianNetwork(
+            dag=ToyDAG(),
+            conditionals=LinearConditional(),
+            random_state=10
+        )
+
+    def test_computation_of_causal_effect(self):
+        effect = self.model.compute_average_causal_effect(
+            node_from='B',
+            node_onto='E',
+            value=3)
+
+        self.assertGreater(effect, 1)
+
+    def test_assure_clean_up_after_computation(self):
+        self.model.compute_average_causal_effect(
+            node_from='B',
+            node_onto='E',
+            value=1)
+        self.assertTrue(not isinstance(self.model.transformations['B'], ConstantConditional))
+        self.assertTrue(self.model.noises['B'] != pm.math.constant(0))
+        self.assertTrue(isinstance(self.model.noises['B'], type(LinearConditional().make_noise())))
+
+    def test_average_causal_effect_on_source_node(self):
+        effect = self.model.compute_average_causal_effect(
+            node_from='A',
+            node_onto='E',
+            value=2)
+        self.assertGreater(effect, 0.4)
