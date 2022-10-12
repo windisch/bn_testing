@@ -130,29 +130,41 @@ class BayesianNetwork(metaclass=ABCMeta):
 
     def compute_average_causal_effect(self, node_from=None, node_onto=None, value=None, n=1000):
         """
-        TODO
+        Computes the average causal effect of a node that has a certain value onto another node.
+
+        Args:
+            node_from (str): Name of node that gets the intervention
+            node_onto (st): Variable whose change should be computed
+            value (float): Value of intervention
+            n (int): Sample size to approximate the expected values
+
+        Returns:
+            float: The average causal effect
         """
+        df_orig = self.sample(n=n, nodes=[node_onto])
 
         if self.is_source(node_from):
-            raise NotImplementedError()
+            source = self.sources[node_from]
+            transformation = ConstantConditional(value=value).make_transformation([])
+            self.sources[node_from] = transformation.apply({})
         else:
-
-            df_orig = self.sample(n=n, nodes=[node_onto])
-
             transformation = self.transformations[node_from]
             noise = self.noises[node_from]
 
-            self.modify_transformation(
-                node=node_from,
-                conditionals=ConstantConditional(value=value)
-            )
+        self.modify_transformation(
+            node=node_from,
+            conditionals=ConstantConditional(value=value)
+        )
 
-            df_intervent = self.sample(n=n, nodes=[node_onto])
+        df_intervent = self.sample(n=n, nodes=[node_onto])
 
+        if self.is_source(node_from):
+            self.sources[node_from] = source
+        else:
             self.transformations[node_from] = transformation
             self.noises[node_from] = noise
 
-            return df_intervent[node_onto].mean() - df_orig[node_onto].mean()
+        return df_intervent[node_onto].mean() - df_orig[node_onto].mean()
 
     def _build_variables(self):
         variables = {}

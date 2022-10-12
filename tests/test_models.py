@@ -140,3 +140,10 @@ class TestCausalEffects(unittest.TestCase):
         self.assertTrue(not isinstance(self.model.transformations['B'], ConstantConditional))
         self.assertTrue(self.model.noises['B'] != pm.math.constant(0))
         self.assertTrue(isinstance(self.model.noises['B'], type(LinearConditional().make_noise())))
+
+    def test_average_causal_effect_on_source_node(self):
+        effect = self.model.compute_average_causal_effect(
+            node_from='A',
+            node_onto='E',
+            value=2)
+        self.assertGreater(effect, 0.4)
