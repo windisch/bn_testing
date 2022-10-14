@@ -13,10 +13,11 @@ class Conditional(object):
     Base class of conditional distributions
     """
 
-    def make_transformation(self, parents):
+    def make_transformation(self, parents, node):
         """
         Args:
             parents (list): Name of the parent nodes.
+            node (str): Name of the node whose transformation should be made
 
         Returns:
             bn_testing.transformations.Transformation: A transformation
@@ -35,10 +36,10 @@ class Conditional(object):
             beta=self.random.uniform(1, 5),
         )
 
-    def __call__(self, parents):
+    def __call__(self, parents, node):
         """
         """
-        return self.make_transformation(parents)
+        return self.make_transformation(parents=parents, node=node)
 
 
 class LinearConditional(Conditional):
@@ -50,11 +51,15 @@ class LinearConditional(Conditional):
         self.coef_min = coef_min
         self.coef_max = coef_max
 
-    def make_transformation(self, parents):
+    def make_transformation(self, parents, node):
         n_parents = len(parents)
         signs = self.random.choice([-1, 1], size=n_parents)
         coefs = signs*self.random.uniform(self.coef_min, self.coef_max, size=n_parents)
-        return Linear(parents, coefs)
+        return Linear(
+            parents=parents,
+            node=node,
+            coefs=coefs
+        )
 
 
 class PolynomialConditional(Conditional):
@@ -88,7 +93,7 @@ class PolynomialConditional(Conditional):
             [1/n_variables]*n_variables
         )
 
-    def make_transformation(self, parents):
+    def make_transformation(self, parents, node):
         n_parents = len(parents)
 
         n_monomials = self.random.randint(self.min_terms, self.max_terms+1)
@@ -105,6 +110,7 @@ class PolynomialConditional(Conditional):
         coefs = signs * self.random.uniform(1, 10, size=n_monomials)
         return Polynomial(
             parents=parents,
+            node=node,
             exponents=exponents,
             coefs=coefs,
             with_tanh=self.with_tanh
@@ -119,8 +125,8 @@ class ConstantConditional(Conditional):
     def __init__(self, value):
         self.value = value
 
-    def make_transformation(self, parents):
-        return Constant(parents, self.value)
+    def make_transformation(self, parents, node):
+        return Constant(parents=parents, node=node, value=self.value)
 
     def make_noise(self):
         return pm.math.constant(0)

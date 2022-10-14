@@ -60,7 +60,10 @@ class BayesianNetwork(metaclass=ABCMeta):
             conditionals = self.conditionals
         else:
             conditionals.init(self.random)
-        self.transformations[node] = conditionals.make_transformation(self._get_parents(node))
+        self.transformations[node] = conditionals.make_transformation(
+            parents=self._get_parents(node),
+            node=node
+        )
         self.noises[node] = conditionals.make_noise()
 
     @property
@@ -107,6 +110,7 @@ class BayesianNetwork(metaclass=ABCMeta):
             if len(parents) > 0:
                 transformations[node] = self.conditionals.make_transformation(
                     parents=parents,
+                    node=node,
                 )
         return transformations
 
@@ -145,7 +149,10 @@ class BayesianNetwork(metaclass=ABCMeta):
 
         if self.is_source(node_from):
             source = self.sources[node_from]
-            transformation = ConstantConditional(value=value).make_transformation([])
+            transformation = ConstantConditional(value=value).make_transformation(
+                parents=[],
+                node=node_from
+            )
             self.sources[node_from] = transformation.apply({})
         else:
             transformation = self.transformations[node_from]

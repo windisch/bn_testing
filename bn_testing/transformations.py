@@ -1,12 +1,15 @@
 import numpy as np
 import pymc as pm
-from bn_testing.helpers import sigmoid
 
 
 class Transformation(object):
+    """
+    TODO
+    """
 
-    def __init__(self, parents):
+    def __init__(self, parents, node):
         self.parents = parents
+        self.node = node
 
     def get_vars_from_dict(self, parent_dict):
         return np.array([parent_dict[p] for p in self.parents])
@@ -16,9 +19,12 @@ class Transformation(object):
 
 
 class Linear(Transformation):
+    """
+    TODO
+    """
 
-    def __init__(self, parents, coefs):
-        super(Linear, self).__init__(parents)
+    def __init__(self, parents, node, coefs):
+        super(Linear, self).__init__(parents=parents, node=node)
         self.coefs = coefs
 
     def apply(self, parents_mapping):
@@ -26,15 +32,18 @@ class Linear(Transformation):
         return np.sum(parents*self.coefs)
 
     def __repr__(self):
-        return " + ".join(
+        return f"{self.node} = " + " + ".join(
             ["{:.1f}*{}".format(c, p) for c, p in zip(self.coefs, self.parents)]
         )
 
 
 class Polynomial(Transformation):
+    """
+    TODO
+    """
 
-    def __init__(self, parents, exponents, coefs, with_tanh=True):
-        Transformation.__init__(self, parents)
+    def __init__(self, parents, node, exponents, coefs, with_tanh=True):
+        Transformation.__init__(self, parents=parents, node=node)
         self.with_tanh = with_tanh
         self.exponents = np.array(exponents, dtype=int)
         self.coefs = coefs
@@ -59,7 +68,7 @@ class Polynomial(Transformation):
         )
 
     def __repr__(self):
-        return " + ".join(
+        return f"{self.node} = " + " + ".join(
             ["{:.1f}*{}".format(
                 c,
                 "*".join([f"{p}^{e}" for p, e in zip(self.parents, exp.ravel().astype(str).tolist())])
@@ -68,9 +77,12 @@ class Polynomial(Transformation):
 
 
 class Constant(Transformation):
+    """
+    TODO
+    """
 
-    def __init__(self, parents, value):
-        Transformation.__init__(self, parents)
+    def __init__(self, parents, node, value):
+        Transformation.__init__(self, parents=parents, node=node)
         self.value = value
 
     def apply(self, parents_mapping):

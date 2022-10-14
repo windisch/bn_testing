@@ -15,7 +15,7 @@ class TestLinearConditionals(unittest.TestCase):
         self.y = pm.Beta.dist(alpha=2, beta=2)
         self.conditional = LinearConditional()
         self.conditional.init(np.random.RandomState(10))
-        self.transformation = self.conditional(['x', 'y'])
+        self.transformation = self.conditional(parents=['x', 'y'], node='z')
 
     def test_transform(self):
 
