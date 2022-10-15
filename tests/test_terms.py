@@ -1,13 +1,9 @@
 import unittest
 import pymc as pm
-import numpy as np
 
-
-from bn_testing.transformations import (
+from bn_testing.terms import (
     Linear,
     Monomial,
-    Constant,
-    NumpyFunc,
 )
 
 
@@ -26,7 +22,6 @@ class TestCompositions(unittest.TestCase):
         self.assertEqual(result.eval(), 0)
 
     def test_multiplication_with_coefs(self):
-        # TODO: Improve for constant values
         a = 3*self.t_a*self.t_b
         result = a.apply(self.mapping)
         self.assertEqual(result.eval(), 3*(1*1+2*2)*(-1*1-2*2))

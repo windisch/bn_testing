@@ -8,42 +8,42 @@ import numbers
 from bn_testing.helpers import sigmoid
 
 
-class Transformation(object):
+class Term(object):
     """
     TODO
     """
 
-    def __init__(self, parents, node, transformation_fn=None, disp=""):
+    def __init__(self, parents, node, term_fn=None, disp=""):
         self.parents = parents
         self.node = node
         self.disp = disp
         # TODO: Catch disp="" case
 
-        if transformation_fn is None:
-            self.transformation_fn = lambda x: 0
+        if term_fn is None:
+            self.term_fn = lambda x: 0
         else:
-            self.transformation_fn = transformation_fn
+            self.term_fn = term_fn
 
     def get_vars_from_dict(self, parent_dict):
         return np.array([parent_dict[p] for p in self.parents])
 
     def apply(self, parents_mapping):
-        return self.transformation_fn(parents_mapping)
+        return self.term_fn(parents_mapping)
 
     def __repr__(self):
         return f"{self.node} = {self.disp}"
 
-    def _add_with(self, transformation):
-        def transformation_fn(parents_mapping):
-            return self.apply(parents_mapping) + transformation.apply(parents_mapping)
-        return transformation_fn
+    def _add_with(self, term):
+        def term_fn(parents_mapping):
+            return self.apply(parents_mapping) + term.apply(parents_mapping)
+        return term_fn
 
-    def _multiply_with(self, transformation):
-        def transformation_fn(parents_mapping):
-            return self.apply(parents_mapping) * transformation.apply(parents_mapping)
-        return transformation_fn
+    def _multiply_with(self, term):
+        def term_fn(parents_mapping):
+            return self.apply(parents_mapping) * term.apply(parents_mapping)
+        return term_fn
 
-    def _make_constant_transformation(self, value):
+    def _make_constant_term(self, value):
         return Constant(
             parents=self.parents,
             node=self.node,
@@ -51,66 +51,52 @@ class Transformation(object):
         )
 
     def _power(self, k):
-        def transformation_fn(parents_mapping):
+        def term_fn(parents_mapping):
             return np.power(self.apply(parents_mapping), k)
-        return transformation_fn
+        return term_fn
 
     def __pow__(self, k):
-        return Transformation(
+        return Term(
             parents=self.parents,
             node=self.node,
-            transformation_fn=self._power(k),
+            term_fn=self._power(k),
             disp=f"({self.disp})^{k}"
         )
 
     def __radd__(self, value):
-        return self._make_constant_transformation(value) + self
+        return self._make_constant_term(value) + self
 
     def __ladd__(self, value):
-        return self + self._make_constant_transformation(value)
+        return self + self._make_constant_term(value)
 
-    def __add__(self, transformation):
-        return Transformation(
+    def __add__(self, term):
+        return Term(
             parents=self.parents,
             node=self.node,
-            transformation_fn=self._add_with(transformation),
-            disp=f"{self.disp}+{transformation.disp}"
+            term_fn=self._add_with(term),
+            disp=f"{self.disp}+{term.disp}"
         )
 
     def __lmul__(self, value):
-        return self._make_constant_transformation(value) * self
+        return self._make_constant_term(value) * self
 
     def __rmul__(self, value):
-        return self*self._make_constant_transformation(value)
+        return self*self._make_constant_term(value)
 
-    def __mul__(self, transformation):
+    def __mul__(self, term):
 
-        if isinstance(transformation, numbers.Number):
-            transformation = self._make_constant_transformation(transformation)
+        if isinstance(term, numbers.Number):
+            term = self._make_constant_term(term)
 
-        return Transformation(
+        return Term(
             parents=self.parents,
             node=self.node,
-            transformation_fn=self._multiply_with(transformation),
-            disp=f"({self.disp})*({transformation.disp})"
+            term_fn=self._multiply_with(term),
+            disp=f"({self.disp})*({term.disp})"
         )
 
 
-class NumpyFunc(Transformation):
-
-    def __init__(self, node, func, parent='input'):
-
-        self.parent = parent
-
-        super(Transformation, self).__init__(
-            parents=[self.parent],
-            node=node,
-            disp=f"{str(func)}({self.parent})",
-            transformation_fn=lambda mapping: func(mapping[self.parent])
-        )
-
-
-class Linear(Transformation):
+class Linear(Term):
     """
     TODO
     """
@@ -130,7 +116,7 @@ class Linear(Transformation):
         return np.sum(parents*self.coefs)
 
 
-class Monomial(Transformation):
+class Monomial(Term):
     """
     TODO
     """
@@ -161,16 +147,15 @@ class Monomial(Transformation):
             return monomial
 
 
-class Constant(Transformation):
+class Constant(Term):
     """
     TODO
     """
 
     def __init__(self, parents, node, value):
-        Transformation.__init__(
-            self,
+        super(Constant, self).__init__(
             parents=parents,
             node=node,
-            transformation_fn =lambda _: pm.math.constant(value),
+            term_fn=lambda _: pm.math.constant(value),
             disp="{:.1f}".format(value)
         )

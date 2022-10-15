@@ -1,7 +1,7 @@
 import numpy as np
 import pymc as pm
 
-from bn_testing.transformations import (
+from bn_testing.terms import (
     Linear,
     Monomial,
     Constant,
@@ -13,14 +13,14 @@ class Conditional(object):
     Base class of conditional distributions
     """
 
-    def make_transformation(self, parents, node):
+    def make_term(self, parents, node):
         """
         Args:
             parents (list): Name of the parent nodes.
-            node (str): Name of the node whose transformation should be made
+            node (str): Name of the node whose term  should be made
 
         Returns:
-            bn_testing.transformations.Transformation: A transformation
+            bn_testing.term.Term: A term
         """
         raise NotImplementedError()
 
@@ -39,7 +39,7 @@ class Conditional(object):
     def __call__(self, parents, node):
         """
         """
-        return self.make_transformation(parents=parents, node=node)
+        return self.make_term(parents=parents, node=node)
 
 
 class LinearConditional(Conditional):
@@ -51,7 +51,7 @@ class LinearConditional(Conditional):
         self.coef_min = coef_min
         self.coef_max = coef_max
 
-    def make_transformation(self, parents, node):
+    def make_term(self, parents, node):
         n_parents = len(parents)
         signs = self.random.choice([-1, 1], size=n_parents)
         coefs = signs*self.random.uniform(self.coef_min, self.coef_max, size=n_parents)
@@ -64,7 +64,7 @@ class LinearConditional(Conditional):
 
 class PolynomialConditional(Conditional):
     """
-    Conditional that builds polynomial transformations
+    Conditional that builds polynomial terms
     """
 
     def __init__(self, min_terms=1, max_terms=5, max_degree_add=10, with_tanh=True):
@@ -93,7 +93,7 @@ class PolynomialConditional(Conditional):
             [1/n_variables]*n_variables
         )
 
-    def make_transformation(self, parents, node):
+    def make_term(self, parents, node):
         n_parents = len(parents)
 
         n_monomials = self.random.randint(self.min_terms, self.max_terms+1)
@@ -124,7 +124,7 @@ class ConstantConditional(Conditional):
     def __init__(self, value):
         self.value = value
 
-    def make_transformation(self, parents, node):
+    def make_term(self, parents, node):
         return Constant(parents=parents, node=node, value=self.value)
 
     def make_noise(self):
