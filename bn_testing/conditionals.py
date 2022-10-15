@@ -3,7 +3,7 @@ import pymc as pm
 
 from bn_testing.transformations import (
     Linear,
-    Polynomial,
+    Monomial,
     Constant,
 )
 
@@ -99,22 +99,21 @@ class PolynomialConditional(Conditional):
         n_monomials = self.random.randint(self.min_terms, self.max_terms+1)
         degree = n_parents+self.random.randint(1, self.max_degree_add)
 
-        exponents = [
-            self._get_random_exponent(
-                degree=degree,
-                n_variables=n_parents,
+        monomials = [
+            Monomial(
+                parents=parents,
+                node=node,
+                exponents=self._get_random_exponent(
+                    degree=degree,
+                    n_variables=n_parents,
+                ),
+                with_tanh=self.with_tanh,
             ) for _ in range(n_monomials)
         ]
 
         signs = self.random.choice([-1, 1], size=n_monomials)
         coefs = signs * self.random.uniform(1, 10, size=n_monomials)
-        return Polynomial(
-            parents=parents,
-            node=node,
-            exponents=exponents,
-            coefs=coefs,
-            with_tanh=self.with_tanh
-        )
+        return sum([c*m for c, m in zip(coefs, monomials)])
 
 
 class ConstantConditional(Conditional):
