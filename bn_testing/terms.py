@@ -1,6 +1,3 @@
-"""
-TODO
-"""
 import numpy as np
 import pymc as pm
 import numbers
@@ -10,14 +7,17 @@ from bn_testing.helpers import sigmoid
 
 class Term(object):
     """
-    TODO
+    A mathematical expression that transforms the parent nodes into the given node
+
+    :param list parents: List of parent nodes
+    :param function term_fn: Function that maps a :py:class:`dict` where the parent names are the
+        keys and pymc variables are the values to a pymc variable
+    :param str disp: String that should be shown when the term is displayed
     """
 
-    def __init__(self, parents, node, term_fn=None, disp=""):
+    def __init__(self, parents, term_fn=None, disp=""):
         self.parents = parents
-        self.node = node
         self.disp = disp
-        # TODO: Catch disp="" case
 
         if term_fn is None:
             self.term_fn = lambda x: 0
@@ -25,13 +25,25 @@ class Term(object):
             self.term_fn = term_fn
 
     def get_vars_from_dict(self, parent_dict):
+        """
+        Flattens the dict of parents to a list with order specified in the constructor.
+
+        :param parent_dict: :py:class:`dict` where the keys are parent names and the values are
+            variables.
+
+        :returns: List of parent variables
+        :rtype: list
+        """
         return np.array([parent_dict[p] for p in self.parents])
 
     def apply(self, parents_mapping):
+        """
+        Applies the term onto the parents
+        """
         return self.term_fn(parents_mapping)
 
     def __repr__(self):
-        return f"{self.node} = {self.disp}"
+        return self.disp
 
     def _add_with(self, term):
         def term_fn(parents_mapping):
@@ -46,7 +58,6 @@ class Term(object):
     def _make_constant_term(self, value):
         return Constant(
             parents=self.parents,
-            node=self.node,
             value=value,
         )
 
@@ -58,7 +69,6 @@ class Term(object):
     def __pow__(self, k):
         return Term(
             parents=self.parents,
-            node=self.node,
             term_fn=self._power(k),
             disp=f"({self.disp})^{k}"
         )
@@ -72,7 +82,6 @@ class Term(object):
     def __add__(self, term):
         return Term(
             parents=self.parents,
-            node=self.node,
             term_fn=self._add_with(term),
             disp=f"{self.disp}+{term.disp}"
         )
@@ -90,7 +99,6 @@ class Term(object):
 
         return Term(
             parents=self.parents,
-            node=self.node,
             term_fn=self._multiply_with(term),
             disp=f"({self.disp})*({term.disp})"
         )
@@ -98,14 +106,16 @@ class Term(object):
 
 class Linear(Term):
     """
-    TODO
+    A linear weighted sum of the parent variables
+
+    :param list parents: List of parent nodes
+    :param numpy.ndarray coefs: Array of coefficients, size must equal the number of parents
     """
 
-    def __init__(self, parents, node, coefs):
+    def __init__(self, parents, coefs):
         self.coefs = coefs
         super(Linear, self).__init__(
             parents=parents,
-            node=node,
             disp=" + ".join(
                 ["{:.1f}*{}".format(c, p) for c, p in zip(self.coefs, parents)]
             )
@@ -118,9 +128,13 @@ class Linear(Term):
 
 class Monomial(Term):
     """
-    TODO
+    A monomial in the parents variables.
+
+    :param list parents: List of parent nodes
+    :param numpy.ndarray exponents: Array holding the exponents of the parent variables
+    :param bool with_tanh: Whether :py:func:`numpy.tanh` should be applied onto the monmial
     """
-    def __init__(self, parents, node, exponents, with_tanh=False):
+    def __init__(self, parents, exponents, with_tanh=False):
         self.exponents = np.array(exponents).ravel()
         self.with_tanh = with_tanh
 
@@ -129,7 +143,6 @@ class Monomial(Term):
 
         super(Monomial, self).__init__(
             parents=parents,
-            node=node,
             disp="*".join(
                 [
                     f"{p}^{e}" for p, e in zip(parents, self.exponents.astype(str).tolist())
@@ -149,13 +162,12 @@ class Monomial(Term):
 
 class Constant(Term):
     """
-    TODO
+    A constant term.
     """
 
-    def __init__(self, parents, node, value):
+    def __init__(self, parents, value):
         super(Constant, self).__init__(
             parents=parents,
-            node=node,
             term_fn=lambda _: pm.math.constant(value),
             disp="{:.1f}".format(value)
         )

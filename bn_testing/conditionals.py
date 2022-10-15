@@ -57,7 +57,6 @@ class LinearConditional(Conditional):
         coefs = signs*self.random.uniform(self.coef_min, self.coef_max, size=n_parents)
         return Linear(
             parents=parents,
-            node=node,
             coefs=coefs
         )
 
@@ -102,7 +101,6 @@ class PolynomialConditional(Conditional):
         monomials = [
             Monomial(
                 parents=parents,
-                node=node,
                 exponents=self._get_random_exponent(
                     degree=degree,
                     n_variables=n_parents,
@@ -125,7 +123,7 @@ class ConstantConditional(Conditional):
         self.value = value
 
     def make_term(self, parents, node):
-        return Constant(parents=parents, node=node, value=self.value)
+        return Constant(parents=parents, value=self.value)
 
     def make_noise(self):
         return pm.math.constant(0)

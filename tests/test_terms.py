@@ -11,9 +11,8 @@ class TestCompositions(unittest.TestCase):
 
     def setUp(self):
         self.parents = ['x', 'y']
-        self.node = 'z'
-        self.t_a = Linear(self.parents, node=self.node, coefs=[1, 2])
-        self.t_b = Linear(self.parents, node=self.node, coefs=[-1, -2])
+        self.t_a = Linear(self.parents, coefs=[1, 2])
+        self.t_b = Linear(self.parents, coefs=[-1, -2])
         self.mapping = {'x': pm.math.constant(1), 'y': pm.math.constant(2)}
 
     def test_addition(self):
@@ -47,7 +46,6 @@ class TestMonomial(unittest.TestCase):
     def setUp(self):
         self.monomial = Monomial(
             parents=['x', 'y'],
-            node='z',
             exponents=[1, 2])
 
         self.mapping = {'x': pm.math.constant(1), 'y': pm.math.constant(2)}
