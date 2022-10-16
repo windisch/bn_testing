@@ -41,4 +41,5 @@ Contents
    construction
    dags
    conditionals
+   terms
    api
