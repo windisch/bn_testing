@@ -10,7 +10,7 @@ from bn_testing.dags import (
     DAG,
 )
 
-from bn_testing.transformations import Linear
+from bn_testing.terms import Linear
 from bn_testing.conditionals import (
     LinearConditional,
     PolynomialConditional,
@@ -49,9 +49,9 @@ class TestLinearErdosReny(unittest.TestCase):
             ]
         )
 
-    def test_transformations(self):
-        self.assertIsInstance(self.model.transformations, dict)
-        for t in self.model.transformations.values():
+    def test_terms(self):
+        self.assertIsInstance(self.model.terms, dict)
+        for t in self.model.terms.values():
             self.assertIsInstance(t, Linear)
 
     def test_sampling(self):
@@ -67,8 +67,8 @@ class TestLinearErdosReny(unittest.TestCase):
             ['f00', 'f09'],
         )
 
-    def test_order_of_transformations(self):
-        nodes = list(self.model.transformations.keys())
+    def test_order_of_terms(self):
+        nodes = list(self.model.terms.keys())
         nodes_orig = nodes.copy()
         nodes.sort()
         self.assertListEqual(nodes, nodes_orig)
@@ -84,12 +84,12 @@ class TestModifications(unittest.TestCase):
         )
 
     def test_modification(self):
-        transform_orig = self.model.transformations['f07']
+        term_orig = self.model.terms['f07']
 
-        self.model.modify_transformation('f07')
-        transform_new = self.model.transformations['f07']
+        self.model.modify_term('f07')
+        term_new = self.model.terms['f07']
         self.assertTrue(
-            np.all(transform_new.coefs != transform_orig.coefs)
+            np.all(term_new.coefs != term_orig.coefs)
         )
 
 
@@ -137,7 +137,7 @@ class TestCausalEffects(unittest.TestCase):
             node_from='B',
             node_onto='E',
             value=1)
-        self.assertTrue(not isinstance(self.model.transformations['B'], ConstantConditional))
+        self.assertTrue(not isinstance(self.model.terms['B'], ConstantConditional))
         self.assertTrue(self.model.noises['B'] != pm.math.constant(0))
         self.assertTrue(isinstance(self.model.noises['B'], type(LinearConditional().make_noise())))
 

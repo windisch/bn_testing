@@ -36,10 +36,10 @@ bn\_testing.models module
    :undoc-members:
    :show-inheritance:
 
-bn\_testing.transformations module
-----------------------------------
+bn\_testing.terms module
+------------------------
 
-.. automodule:: bn_testing.transformations
+.. automodule:: bn_testing.terms
    :members:
    :undoc-members:
    :show-inheritance:

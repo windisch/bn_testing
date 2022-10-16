@@ -43,7 +43,7 @@ class BayesianNetwork(metaclass=ABCMeta):
         logger.info('Generate DAG')
         self.dag = self.dag_gen.generate()
         logger.info('Generate models')
-        self.transformations = self._build_transformations()
+        self.terms = self._build_terms()
         self.sources = self._build_sources()
         self.noises = self._build_noises()
 
@@ -51,7 +51,7 @@ class BayesianNetwork(metaclass=ABCMeta):
     def edges(self):
         return list(self.dag.edges())
 
-    def modify_transformation(self, node, conditionals=None):
+    def modify_term(self, node, conditionals=None):
 
         if node not in self.nodes:
             raise ValueError(f'Unkown node {node}')
@@ -60,7 +60,10 @@ class BayesianNetwork(metaclass=ABCMeta):
             conditionals = self.conditionals
         else:
             conditionals.init(self.random)
-        self.transformations[node] = conditionals.make_transformation(self._get_parents(node))
+        self.terms[node] = conditionals.make_term(
+            parents=self._get_parents(node),
+            node=node
+        )
         self.noises[node] = conditionals.make_noise()
 
     @property
@@ -100,19 +103,20 @@ class BayesianNetwork(metaclass=ABCMeta):
                 sources[node] = self.conditionals.make_source()
         return sources
 
-    def _build_transformations(self):
-        transformations = {}
+    def _build_terms(self):
+        terms = {}
         for node in self.nodes:
             parents = self._get_parents(node)
             if len(parents) > 0:
-                transformations[node] = self.conditionals.make_transformation(
+                terms[node] = self.conditionals.make_term(
                     parents=parents,
+                    node=node,
                 )
-        return transformations
+        return terms
 
     def _build_variable(self, node, parents_mapping):
         """
-        Builds the variable corresponding to `node` by invoking the transformation created by the
+        Builds the variable corresponding to `node` by invoking the term created by the
         conditionals.
 
         Args:
@@ -121,7 +125,7 @@ class BayesianNetwork(metaclass=ABCMeta):
 
         """
         if len(parents_mapping.keys()) > 0:
-            var = self.transformations[node].apply(parents_mapping) + self.noises[node]
+            var = self.terms[node].apply(parents_mapping) + self.noises[node]
         else:
             # As generating the source introduces some randomness we would like to fix, we have to
             # build the source variables only once and reuse them here.
@@ -145,13 +149,16 @@ class BayesianNetwork(metaclass=ABCMeta):
 
         if self.is_source(node_from):
             source = self.sources[node_from]
-            transformation = ConstantConditional(value=value).make_transformation([])
-            self.sources[node_from] = transformation.apply({})
+            term = ConstantConditional(value=value).make_term(
+                parents=[],
+                node=node_from
+            )
+            self.sources[node_from] = term.apply({})
         else:
-            transformation = self.transformations[node_from]
+            term = self.terms[node_from]
             noise = self.noises[node_from]
 
-        self.modify_transformation(
+        self.modify_term(
             node=node_from,
             conditionals=ConstantConditional(value=value)
         )
@@ -161,7 +168,7 @@ class BayesianNetwork(metaclass=ABCMeta):
         if self.is_source(node_from):
             self.sources[node_from] = source
         else:
-            self.transformations[node_from] = transformation
+            self.terms[node_from] = term
             self.noises[node_from] = noise
 
         return df_intervent[node_onto].mean() - df_orig[node_onto].mean()

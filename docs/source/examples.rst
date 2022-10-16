@@ -1,5 +1,5 @@
-Construction
-============
+Examples
+========
 
 .. code:: python
 

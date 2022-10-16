@@ -38,7 +38,8 @@ Contents
 .. toctree::
 
    install
-   construction
    dags
    conditionals
+   terms
+   examples
    api
