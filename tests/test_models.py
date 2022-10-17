@@ -159,8 +159,6 @@ class TestVarsortability(unittest.TestCase):
         )
 
     def test_compute_varsortability(self):
-
-        self.assertEqual(
-            self.model.compute_varsortability(),
-            0.375
-        )
+        varsortability = self.model.compute_varsortability()
+        self.assertLessEqual(varsortability, 1)
+        self.assertGreaterEqual(varsortability, 0)
