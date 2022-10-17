@@ -126,38 +126,62 @@ class Linear(Term):
         return np.sum(parents*self.coefs)
 
 
-class Monomial(Term):
+class Polynomial(Term):
     """
-    A monomial in the parents variables.
+    A multivariate polynomial in the parents variables.
 
     :param list parents: List of parent nodes
     :param numpy.ndarray exponents: Array holding the exponents of the parent variables
+    :param numpy.ndarray coefs: Array holding the coeficients for each monomial
+    :param float intercept: The intercept of the polynomial
     :param bool with_tanh: Whether :py:func:`numpy.tanh` should be applied onto the monmial
     """
-    def __init__(self, parents, exponents, with_tanh=False):
-        self.exponents = np.array(exponents).ravel()
+    def __init__(self, parents, exponents, coefs, intercept=0, with_tanh=False):
+        self.exponents = np.array(exponents)
+        self.coefs = np.array(coefs)
         self.with_tanh = with_tanh
+        self.intercept = intercept
 
-        if len(parents) != self.exponents.shape[0]:
+        if len(parents) != self.exponents.shape[1]:
             raise ValueError('Exponents do not match parents')
 
-        super(Monomial, self).__init__(
+        if self.coefs.shape[0] != self.exponents.shape[0]:
+            raise ValueError('Exponents do not match coefs')
+
+        super(Polynomial, self).__init__(
             parents=parents,
-            disp="*".join(
+            disp="+".join(
                 [
-                    f"{p}^{e}" for p, e in zip(parents, self.exponents.astype(str).tolist())
+                   Polynomial._disp_term(
+                       parents=parents,
+                       exp=e,
+                       coef=c
+                   ) for e, c in zip(self.exponents, self.coefs)
                 ]
             )
         )
 
-    def apply(self, parents_mapping):
-        parents = self.get_vars_from_dict(parents_mapping)
-        monomial = np.prod(np.power(parents, self.exponents))
+    @staticmethod
+    def _disp_term(parents, exp, coef):
+        return "{:.1f}*".format(coef) + "*".join(
+            [
+                f"{p}^{e}" for p, e in zip(parents, exp.astype(str).tolist())
+            ]
+        )
+
+    def _get_monomial(self, parents, exp):
+        monomial = np.prod(np.power(parents, exp))
 
         if self.with_tanh:
             return sigmoid(monomial)
         else:
             return monomial
+
+    def apply(self, parents_mapping):
+        parents = self.get_vars_from_dict(parents_mapping)
+        monomials = [self._get_monomial(parents, exp) for exp in self.exponents]
+
+        return sum([c*m for c, m in zip(self.coefs, monomials)])+self.intercept
 
 
 class Constant(Term):
