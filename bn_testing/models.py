@@ -3,6 +3,7 @@ import pandas as pd
 import logging
 import networkx as nx
 import pymc as pm
+from itertools import combinations
 
 from abc import ABCMeta
 
@@ -17,10 +18,9 @@ class BayesianNetwork(metaclass=ABCMeta):
     Note:
         We assume that the order of the nodes is a topological ordering of the resulting graph.
 
-    Args:
-        p (float): Erdös-Renyi probability
-        dag (bn_testing.dags.DAG): A DAG generation method
-        conditionals (bn_testing.conditionals.Conditionals): A conditional type
+    :param bn_testing.dags.DAG dag: A DAG generation method
+    :param bn_testing.conditionals.Conditionals conditionals: A conditional type
+    :param int random_state: A random state
     """
 
     def __init__(self, dag=None, conditionals=None, random_state=None):
@@ -42,6 +42,8 @@ class BayesianNetwork(metaclass=ABCMeta):
         """
         logger.info('Generate DAG')
         self.dag = self.dag_gen.generate()
+        logger.info('Check DAG')
+        assert nx.is_directed_acyclic_graph(self.dag), 'Cycles detected'
         logger.info('Generate models')
         self.terms = self._build_terms()
         self.sources = self._build_sources()
@@ -119,9 +121,11 @@ class BayesianNetwork(metaclass=ABCMeta):
         Builds the variable corresponding to `node` by invoking the term created by the
         conditionals.
 
-        Args:
-            node (str): Name of the nodes
-            parents_mapping (dict): Mapping of node names to random variables.
+        :param str node: Name of the nodes
+        :param dict parents_mapping: Mapping of node names to random variables.
+
+        :returns: The build PyMC variable
+        :rtype: pymc.distribution.Distribution
 
         """
         if len(parents_mapping.keys()) > 0:
@@ -136,14 +140,13 @@ class BayesianNetwork(metaclass=ABCMeta):
         """
         Computes the average causal effect of a node that has a certain value onto another node.
 
-        Args:
-            node_from (str): Name of node that gets the intervention
-            node_onto (st): Variable whose change should be computed
-            value (float): Value of intervention
-            n (int): Sample size to approximate the expected values
+        :param str node_from: Name of node that gets the intervention
+        :param str node_onto: Variable whose change should be computed
+        :param float value: Value of intervention
+        :param int n: Sample size to approximate the expected values
 
-        Returns:
-            float: The average causal effect
+        :returns: The average causal effect
+        :rtype: float
         """
         df_orig = self.sample(n=n, nodes=[node_onto])
 
@@ -173,6 +176,42 @@ class BayesianNetwork(metaclass=ABCMeta):
 
         return df_intervent[node_onto].mean() - df_orig[node_onto].mean()
 
+    def compute_varsortability(self, n=1000):
+        """
+        Computes the varsortability of the graphical model (see [Reisach et
+        al.](https://arxiv.org/abs/2102.13647)), a number between 0 and 1 that measures how easy the
+        graph structure can be read of the marginal variances (the larger, the easier).
+
+        :param int n: The sample size to estimate the variances
+
+        :returns: The varsortability of the dag
+        :rtype: float
+        """
+        df = self.sample(n=n)
+
+        var_order = df.var().sort_values(ascending=True).index
+
+        n_all_increasing_paths = 0
+        n_all_paths = 0
+
+        for node_lower, node_higher in combinations(var_order, 2):
+            n_increasing_paths = len(list(nx.all_simple_paths(
+                G=self.dag,
+                source=node_lower,
+                target=node_higher,
+            )))
+            n_all_increasing_paths = n_all_increasing_paths + n_increasing_paths
+
+            n_decreasing_paths = len(list(nx.all_simple_paths(
+                G=self.dag,
+                source=node_higher,
+                target=node_lower,
+            )))
+
+            n_all_paths = n_all_paths + n_increasing_paths + n_decreasing_paths
+
+        return n_all_increasing_paths / n_all_paths
+
     def _build_variables(self):
         variables = {}
 
@@ -188,13 +227,10 @@ class BayesianNetwork(metaclass=ABCMeta):
         """
         Samples `n` many identic and independent observations from the Bayesian network.
 
+        :param int n: Number of observation to be created
 
-        Args:
-            n (int): Number of observation to be created
-
-        Returns:
-            pandas.DataFrame: Dataframe in which the variables are columns and the observations are
-            rows
+        :returns: Dataframe in which the variables are columns and the observations are rows
+        :rtype: pandas.DataFrame:
         """
 
         if nodes is None:
