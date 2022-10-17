@@ -3,7 +3,7 @@ import pymc as pm
 
 from bn_testing.terms import (
     Linear,
-    Monomial,
+    Polynomial,
 )
 
 
@@ -41,17 +41,38 @@ class TestCompositions(unittest.TestCase):
         )
 
 
-class TestMonomial(unittest.TestCase):
+class TestPolynomial(unittest.TestCase):
 
     def setUp(self):
-        self.monomial = Monomial(
+        self.monomial = Polynomial(
             parents=['x', 'y'],
-            exponents=[1, 2])
+            exponents=[[1, 2]],
+            coefs=[2.5],
+            intercept=7,
+        )
 
         self.mapping = {'x': pm.math.constant(1), 'y': pm.math.constant(2)}
 
     def test_eval(self):
         self.assertEqual(
             self.monomial.apply(self.mapping).eval(),
-            1**1*2**2
+            2.5*1**1*2**2+7
         )
+
+    def test_value_error_on_missing_coef(self):
+        with self.assertRaises(ValueError):
+            Polynomial(
+                parents=['x', 'y'],
+                exponents=[[1, 2], [7, 8]],
+                coefs=[1],
+                intercept=7,
+            )
+
+    def test_value_error_on_wrong_exponent(self):
+        with self.assertRaises(ValueError):
+            Polynomial(
+                parents=['x', 'y', 'z'],
+                exponents=[[1, 2], [7, 8]],
+                coefs=[1, 1],
+                intercept=7,
+            )

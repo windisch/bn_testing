@@ -147,3 +147,18 @@ class TestCausalEffects(unittest.TestCase):
             node_onto='E',
             value=2)
         self.assertGreater(effect, 0.4)
+
+
+class TestVarsortability(unittest.TestCase):
+
+    def setUp(self):
+        self.model = BayesianNetwork(
+            dag=ToyDAG(),
+            conditionals=LinearConditional(),
+            random_state=10
+        )
+
+    def test_compute_varsortability(self):
+        varsortability = self.model.compute_varsortability()
+        self.assertLessEqual(varsortability, 1)
+        self.assertGreaterEqual(varsortability, 0)
