@@ -12,8 +12,8 @@ Here is a list of terms. Assume that the parents are
 
 * :py:class:`~bn_testing.terms.Linear`: A linear term of the form
   :math:`\sum_{i=1}^nw_ix_i`
-* :py:class:`~bn_testing.terms.Monomial`: A monomial of the form
-  :math:`\prod_{i=1}^nx_i^{e_i}`
+* :py:class:`~bn_testing.terms.Polynomial`: A multivariate polynomial,
+  i.e., a sum of the form :math:`\sum_{j=1}^mc_j\prod_{i=1}^nx_i^{e_{ji}}`
 
 
 Arithmetic with terms
