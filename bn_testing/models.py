@@ -110,10 +110,16 @@ class BayesianNetwork(metaclass=ABCMeta):
         for node in self.nodes:
             parents = self._get_parents(node)
             if len(parents) > 0:
-                terms[node] = self.conditionals.make_term(
-                    parents=parents,
-                    node=node,
+                terms[node] = self.dag.nodes[node].get(
+                    'term',
+                    # Check if dag has a term for that node, otherwise generate one using the
+                    # conditional
+                    self.conditionals.make_term(
+                        parents=parents,
+                        node=node,
+                    )
                 )
+                assert terms[node].parents == parents
         return terms
 
     def _build_variable(self, node, parents_mapping):
@@ -223,11 +229,13 @@ class BayesianNetwork(metaclass=ABCMeta):
             variables[node] = self._build_variable(node, parents_mapping)
         return variables
 
-    def sample(self, n, nodes=None):
+    def sample(self, n, nodes=None, normalize=False):
         """
         Samples `n` many identic and independent observations from the Bayesian network.
 
         :param int n: Number of observation to be created
+        :param bool normalize: If true, each column in the resulting dataframe is divided by its
+            standard deviation
 
         :returns: Dataframe in which the variables are columns and the observations are rows
         :rtype: pandas.DataFrame:
@@ -245,6 +253,9 @@ class BayesianNetwork(metaclass=ABCMeta):
             data=np.array(data).T,
             columns=nodes
         )
+
+        if normalize:
+            df = df/df.std()
         return df
 
     def show(self):

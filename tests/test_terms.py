@@ -43,20 +43,32 @@ class TestCompositions(unittest.TestCase):
 
 class TestPolynomial(unittest.TestCase):
 
-    def setUp(self):
-        self.monomial = Polynomial(
+    def test_eval(self):
+        polynomial = Polynomial(
             parents=['x', 'y'],
             exponents=[[1, 2]],
             coefs=[2.5],
             intercept=7,
         )
 
-        self.mapping = {'x': pm.math.constant(1), 'y': pm.math.constant(2)}
-
-    def test_eval(self):
         self.assertEqual(
-            self.monomial.apply(self.mapping).eval(),
+            polynomial.apply(
+                {'x': pm.math.constant(1), 'y': pm.math.constant(2)}
+            ).eval(),
             2.5*1**1*2**2+7
+        )
+
+    def test_negative_exponents(self):
+        polynomial = Polynomial(
+            parents=['x', 'y'],
+            exponents=[[1, -2]],
+            coefs=[2.5],
+        )
+        self.assertAlmostEqual(
+            polynomial.apply(
+                {'x': pm.math.constant(1.0), 'y': pm.math.constant(3.0)}
+            ).eval(),
+            2.5*1**1*3**(-2)
         )
 
     def test_value_error_on_missing_coef(self):

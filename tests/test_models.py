@@ -28,6 +28,18 @@ class ToyDAG(DAG):
         return dag
 
 
+class ToyDAGWithTerms(DAG):
+    def __init__(self):
+        pass
+
+    def generate(self):
+        dag = nx.DiGraph()
+        dag.add_edges_from([['A', 'B'], ['B', 'D'], ['C', 'D'], ['D', 'E']])
+
+        dag.nodes['D']['term'] = Linear(['B', 'C'], [-100, 100])
+        return dag
+
+
 class TestLinearErdosReny(unittest.TestCase):
 
     def setUp(self):
@@ -72,6 +84,25 @@ class TestLinearErdosReny(unittest.TestCase):
         nodes_orig = nodes.copy()
         nodes.sort()
         self.assertListEqual(nodes, nodes_orig)
+
+    def test_normalized_sampling(self):
+        df = self.model.sample(100, normalize=True)
+        np.testing.assert_array_almost_equal(df.std(), 1.0)
+
+
+class TestModelWithFixedTerms(unittest.TestCase):
+
+    def setUp(self):
+        self.model = BayesianNetwork(
+            dag=ToyDAGWithTerms(),
+            conditionals=PolynomialConditional(),
+            random_state=10
+        )
+
+    def test_fixed_term(self):
+        fixed_term = self.model.terms['D']
+        self.assertListEqual(fixed_term. coefs, [-100, 100])
+        self.assertIsInstance(fixed_term, Linear)
 
 
 class TestModifications(unittest.TestCase):

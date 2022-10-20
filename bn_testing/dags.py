@@ -25,7 +25,7 @@ class DAG(metaclass=ABCMeta):
             n=self.n_nodes)
 
     def show(self, dag):
-        pos = nx.spring_layout(dag, seed=self.random)
+        pos = nx.spring_layout(dag, seed=0)
         nx.draw_networkx_nodes(dag, pos=pos, node_size=100)
         nx.draw_networkx_edges(dag, pos=pos)
         nx.draw_networkx_labels(dag, pos=pos, font_size=6)
