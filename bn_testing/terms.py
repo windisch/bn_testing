@@ -131,7 +131,8 @@ class Polynomial(Term):
     A multivariate polynomial in the parents variables.
 
     :param list parents: List of parent nodes
-    :param numpy.ndarray exponents: Array holding the exponents of the parent variables
+    :param numpy.ndarray exponents: Array holding the exponents of the parent variables. Values can
+        be negative.
     :param numpy.ndarray coefs: Array holding the coeficients for each monomial
     :param float intercept: The intercept of the polynomial
     :param bool with_tanh: Whether :py:func:`numpy.tanh` should be applied onto the monmial
