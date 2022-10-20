@@ -180,7 +180,6 @@ class Polynomial(Term):
     def apply(self, parents_mapping):
         parents = self.get_vars_from_dict(parents_mapping)
         monomials = [self._get_monomial(parents, exp) for exp in self.exponents]
-
         return sum([c*m for c, m in zip(self.coefs, monomials)])+self.intercept
 
 
