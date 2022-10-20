@@ -73,6 +73,10 @@ class TestLinearErdosReny(unittest.TestCase):
         nodes.sort()
         self.assertListEqual(nodes, nodes_orig)
 
+    def test_normalized_sampling(self):
+        df = self.model.sample(100, normalize=True)
+        np.testing.assert_array_almost_equal(df.std(), 1.0)
+
 
 class TestModifications(unittest.TestCase):
 

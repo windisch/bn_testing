@@ -223,11 +223,13 @@ class BayesianNetwork(metaclass=ABCMeta):
             variables[node] = self._build_variable(node, parents_mapping)
         return variables
 
-    def sample(self, n, nodes=None):
+    def sample(self, n, nodes=None, normalize=False):
         """
         Samples `n` many identic and independent observations from the Bayesian network.
 
         :param int n: Number of observation to be created
+        :param bool normalize: If true, each column in the resulting dataframe is divided by its
+            standard deviation
 
         :returns: Dataframe in which the variables are columns and the observations are rows
         :rtype: pandas.DataFrame:
@@ -245,6 +247,9 @@ class BayesianNetwork(metaclass=ABCMeta):
             data=np.array(data).T,
             columns=nodes
         )
+
+        if normalize:
+            df = df/df.std()
         return df
 
     def show(self):
