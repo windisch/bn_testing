@@ -110,10 +110,16 @@ class BayesianNetwork(metaclass=ABCMeta):
         for node in self.nodes:
             parents = self._get_parents(node)
             if len(parents) > 0:
-                terms[node] = self.conditionals.make_term(
-                    parents=parents,
-                    node=node,
+                terms[node] = self.dag.nodes[node].get(
+                    'term',
+                    # Check if dag has a term for that node, otherwise generate one using the
+                    # conditional
+                    self.conditionals.make_term(
+                        parents=parents,
+                        node=node,
+                    )
                 )
+                assert terms[node].parents == parents
         return terms
 
     def _build_variable(self, node, parents_mapping):
