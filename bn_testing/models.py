@@ -119,7 +119,7 @@ class BayesianNetwork(metaclass=ABCMeta):
                         node=node,
                     )
                 )
-                assert terms[node].parents == parents
+                assert set(terms[node].parents) == set(parents)
         return terms
 
     def _build_variable(self, node, parents_mapping):
