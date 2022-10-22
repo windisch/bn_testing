@@ -9,32 +9,58 @@ from bn_testing.helpers import _generate_int_suffixes
 
 class DAG(metaclass=ABCMeta):
 
-    def __init__(self, n_nodes):
-        self.n_nodes = n_nodes
-        self.nodes = self._make_node_names()
-
     def generate(self):
         raise NotImplementedError()
 
     def init(self, random):
         self.random = random
 
-    def _make_node_names(self):
-        return _generate_int_suffixes(
-            prefix='f',
-            n=self.n_nodes)
+    def mark_as_hidden(self, dag, nodes):
+        """
+        TODO
+        """
+        for node in nodes:
+            dag.nodes[node]['is_hidden'] = True
+        return dag
 
-    def show(self, dag):
+    @staticmethod
+    def show(dag):
         pos = nx.spring_layout(dag, seed=0)
         nx.draw_networkx_nodes(dag, pos=pos, node_size=100)
         nx.draw_networkx_edges(dag, pos=pos)
         nx.draw_networkx_labels(dag, pos=pos, font_size=6)
 
 
-class ScaleFree(DAG):
+class RandomizedDAG(DAG):
 
-    def __init__(self, n_nodes=None, alpha=0.4, beta=0.5, gamma=0.1):
-        DAG.__init__(self, n_nodes=n_nodes)
+    def __init__(self, n_visible_nodes, n_hidden_nodes=0):
+        self.n_visible_nodes = n_visible_nodes
+        self.n_hidden_nodes = n_hidden_nodes
+
+        self.nodes_visible = _generate_int_suffixes(
+            prefix='X',
+            n=self.n_visible_nodes)
+
+        self.nodes_hidden = _generate_int_suffixes(
+            prefix='H',
+            n=self.n_hidden_nodes)
+
+    @property
+    def nodes(self):
+        return self.nodes_hidden + self.nodes_visible
+
+    @property
+    def n_nodes(self):
+        return self.n_hidden_nodes + self.n_visible_nodes
+
+
+class ScaleFree(RandomizedDAG):
+
+    def __init__(self, n_visible_nodes=None, alpha=0.4, beta=0.5, gamma=0.1, n_hidden_nodes=0):
+        RandomizedDAG.__init__(
+            self,
+            n_visible_nodes=n_visible_nodes,
+            n_hidden_nodes=n_hidden_nodes)
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
@@ -54,18 +80,24 @@ class ScaleFree(DAG):
             dag,
             mapping=dict(zip(dag.nodes(), self.nodes))
         )
+
+        dag = self.mark_as_hidden(dag, self.nodes_hidden)
         return dag
 
 
-class ErdosReny(DAG):
+class ErdosReny(RandomizedDAG):
     """
 
-    Args:
-        p (float): Erdös-Renyi probability
+    :param float p: Erdös-Renyi probability
+    :param int n_visible_nodes: Number of visible nodes
+    :param int n_hidden_nodes: Number of hidden nodes
     """
 
-    def __init__(self, n_nodes=None, p=0.1):
-        DAG.__init__(self, n_nodes=n_nodes)
+    def __init__(self, n_visible_nodes=None, p=0.1, n_hidden_nodes=0):
+        RandomizedDAG.__init__(
+            self,
+            n_visible_nodes=n_visible_nodes,
+            n_hidden_nodes=n_hidden_nodes)
         self.p = p
 
     def _select_edges(self, edges_iter, p):
@@ -81,7 +113,6 @@ class ErdosReny(DAG):
             list: Sublist of :code:`edges_iter`
         """
 
-        # TODO Use np.fromiter
         edges = np.array([a for a in edges_iter])
 
         selection = self.random.choice(
@@ -103,4 +134,5 @@ class ErdosReny(DAG):
         edges_selected = self._select_edges(all_forward_edges, self.p)
 
         dag.add_edges_from(edges_selected)
+        dag = self.mark_as_hidden(dag, self.nodes_hidden)
         return dag

@@ -19,8 +19,6 @@ from bn_testing.conditionals import (
 
 
 class ToyDAG(DAG):
-    def __init__(self):
-        pass
 
     def generate(self):
         dag = nx.DiGraph()
@@ -29,8 +27,6 @@ class ToyDAG(DAG):
 
 
 class ToyDAGWithTerms(DAG):
-    def __init__(self):
-        pass
 
     def generate(self):
         dag = nx.DiGraph()
@@ -44,7 +40,7 @@ class TestLinearErdosReny(unittest.TestCase):
 
     def setUp(self):
         self.model = BayesianNetwork(
-            dag=ErdosReny(p=0.1, n_nodes=10),
+            dag=ErdosReny(p=0.1, n_visible_nodes=10),
             conditionals=LinearConditional(),
             random_state=10
         )
@@ -56,8 +52,8 @@ class TestLinearErdosReny(unittest.TestCase):
         np.testing.assert_array_equal(
             self.model.nodes,
             [
-                'f00', 'f01', 'f02', 'f03', 'f04',
-                'f05', 'f06', 'f07', 'f08', 'f09',
+                'X00', 'X01', 'X02', 'X03', 'X04',
+                'X05', 'X06', 'X07', 'X08', 'X09',
             ]
         )
 
@@ -72,11 +68,11 @@ class TestLinearErdosReny(unittest.TestCase):
         self.assertSetEqual(set(df.columns), set(self.model.nodes))
 
     def test_sampling_of_some_variables(self):
-        df = self.model.sample(100, nodes=['f00', 'f09'])
+        df = self.model.sample(100, nodes=['X00', 'X09'])
         self.assertTupleEqual(df.shape, (100, 2))
         self.assertListEqual(
             df.columns.to_list(),
-            ['f00', 'f09'],
+            ['X00', 'X09'],
         )
 
     def test_order_of_terms(self):
@@ -109,16 +105,16 @@ class TestModifications(unittest.TestCase):
 
     def setUp(self):
         self.model = BayesianNetwork(
-            dag=ErdosReny(p=0.1, n_nodes=10),
+            dag=ErdosReny(p=0.1, n_visible_nodes=10),
             conditionals=LinearConditional(),
             random_state=10
         )
 
     def test_modification(self):
-        term_orig = self.model.terms['f07']
+        term_orig = self.model.terms['X07']
 
-        self.model.modify_term('f07')
-        term_new = self.model.terms['f07']
+        self.model.modify_term('X07')
+        term_new = self.model.terms['X07']
         self.assertTrue(
             np.all(term_new.coefs != term_orig.coefs)
         )
@@ -128,7 +124,7 @@ class TestPolynomialErdosReny(unittest.TestCase):
 
     def setUp(self):
         self.model = BayesianNetwork(
-            dag=ErdosReny(p=0.1, n_nodes=10),
+            dag=ErdosReny(p=0.1, n_visible_nodes=10),
             conditionals=PolynomialConditional(),
             random_state=10
         )
@@ -142,7 +138,7 @@ class TestPolynomialErdosReny(unittest.TestCase):
         df_a = self.model.sample(1000)
         df_b = self.model.sample(1000)
 
-        p = ks_2samp(df_a['f01'], df_b['f01']).pvalue
+        p = ks_2samp(df_a['X01'], df_b['X01']).pvalue
         self.assertGreater(p, 0.05)
 
 
