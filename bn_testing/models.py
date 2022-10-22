@@ -28,7 +28,6 @@ class BayesianNetwork(metaclass=ABCMeta):
         self.random = np.random.RandomState(self.random_state)
 
         self.dag_gen = dag
-        self.dag_gen.init(self.random)
 
         self.conditionals = conditionals
         self.conditionals.init(self.random)
@@ -41,9 +40,7 @@ class BayesianNetwork(metaclass=ABCMeta):
         Generates the mod
         """
         logger.info('Generate DAG')
-        self.dag = self.dag_gen.generate()
-        logger.info('Check DAG')
-        assert nx.is_directed_acyclic_graph(self.dag), 'Cycles detected'
+        self.dag = self.dag_gen.generate(random=self.random)
         logger.info('Generate models')
         self.terms = self._build_terms()
         self.sources = self._build_sources()
@@ -71,6 +68,14 @@ class BayesianNetwork(metaclass=ABCMeta):
     @property
     def nodes(self):
         return list(self.dag.nodes())
+
+    @property
+    def visible_nodes(self):
+        return [n for n in self.nodes if not self.dag.nodes[n].get('is_hidden', False)]
+
+    @property
+    def hidden_nodes(self):
+        return [n for n in self.nodes if self.dag.nodes[n].get('is_hidden', False)]
 
     def _get_parents(self, node):
         return [n for n, _ in self.dag.in_edges(node)]
@@ -229,11 +234,12 @@ class BayesianNetwork(metaclass=ABCMeta):
             variables[node] = self._build_variable(node, parents_mapping)
         return variables
 
-    def sample(self, n, nodes=None, normalize=False):
+    def sample(self, n, nodes=None, normalize=False, include_hidden_nodes=False):
         """
         Samples `n` many identic and independent observations from the Bayesian network.
 
         :param int n: Number of observation to be created
+        :param bool include_hidden_nodes: If :code:`True`, hidden nodes will be returned as well
         :param bool normalize: If true, each column in the resulting dataframe is divided by its
             standard deviation
 
@@ -243,6 +249,10 @@ class BayesianNetwork(metaclass=ABCMeta):
 
         if nodes is None:
             nodes = self.nodes
+
+        if not include_hidden_nodes:
+            logger.warning('Hidden nodes will be included in the result!')
+            nodes = [n for n in nodes if not self.dag.nodes[n].get('is_hidden', False)]
 
         logger.info('Build variables')
         variables = self._build_variables()
