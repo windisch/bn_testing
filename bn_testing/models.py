@@ -234,12 +234,13 @@ class BayesianNetwork(metaclass=ABCMeta):
             variables[node] = self._build_variable(node, parents_mapping)
         return variables
 
-    def sample(self, n, nodes=None, normalize=False, include_hidden_nodes=False):
+    def sample(self, n, nodes=None, normalize=False, exclude_hidden_nodes=True):
         """
         Samples `n` many identic and independent observations from the Bayesian network.
 
         :param int n: Number of observation to be created
-        :param bool include_hidden_nodes: If :code:`True`, hidden nodes will be returned as well
+        :param bool exclude_hidden_nodes: If :code:`True`, hidden nodes will be excluded. Defaults
+            to :code:`True`.
         :param bool normalize: If true, each column in the resulting dataframe is divided by its
             standard deviation
 
@@ -250,9 +251,10 @@ class BayesianNetwork(metaclass=ABCMeta):
         if nodes is None:
             nodes = self.nodes
 
-        if not include_hidden_nodes:
+        if exclude_hidden_nodes:
+            nodes = [n for n in nodes if n not in self.hidden_nodes]
+        else:
             logger.warning('Hidden nodes will be included in the result!')
-            nodes = [n for n in nodes if not self.dag.nodes[n].get('is_hidden', False)]
 
         logger.info('Build variables')
         variables = self._build_variables()

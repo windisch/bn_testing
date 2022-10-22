@@ -20,7 +20,7 @@ from bn_testing.conditionals import (
 
 class ToyDAG(DAG):
 
-    def generate(self):
+    def make_dag(self):
         dag = nx.DiGraph()
         dag.add_edges_from([['A', 'B'], ['B', 'D'], ['C', 'D'], ['D', 'E']])
         return dag
@@ -28,7 +28,7 @@ class ToyDAG(DAG):
 
 class ToyDAGWithTerms(DAG):
 
-    def generate(self):
+    def make_dag(self):
         dag = nx.DiGraph()
         dag.add_edges_from([['A', 'B'], ['B', 'D'], ['C', 'D'], ['D', 'E']])
 
@@ -36,22 +36,50 @@ class ToyDAGWithTerms(DAG):
         return dag
 
 
+class ToyDAGWithHiddenNode(DAG):
+
+    def make_dag(self):
+        dag = nx.DiGraph()
+        dag.add_edges_from([['A', 'B'], ['B', 'D'], ['C', 'D'], ['D', 'E']])
+
+        dag.nodes['D']['is_hidden'] = True
+        return dag
+
+
 class TestLinearErdosReny(unittest.TestCase):
 
     def setUp(self):
         self.model = BayesianNetwork(
-            dag=ErdosReny(p=0.1, n_visible_nodes=10),
+            dag=ErdosReny(p=0.1, n_visible_nodes=10, n_hidden_nodes=2),
             conditionals=LinearConditional(),
-            random_state=10
+            random_state=10,
         )
 
     def test_acyclicity(self):
         self.assertTrue(nx.is_directed_acyclic_graph(self.model.dag))
 
+    def test_visible_nodes(self):
+        np.testing.assert_array_equal(
+            self.model.visible_nodes,
+            [
+                'X00', 'X01', 'X02', 'X03', 'X04',
+                'X05', 'X06', 'X07', 'X08', 'X09',
+            ]
+        )
+
+    def test_hidden_nodes(self):
+        np.testing.assert_array_equal(
+            self.model.hidden_nodes,
+            [
+                'H0', 'H1'
+            ]
+        )
+
     def test_nodes(self):
         np.testing.assert_array_equal(
             self.model.nodes,
             [
+                'H0', 'H1',
                 'X00', 'X01', 'X02', 'X03', 'X04',
                 'X05', 'X06', 'X07', 'X08', 'X09',
             ]
@@ -65,7 +93,14 @@ class TestLinearErdosReny(unittest.TestCase):
     def test_sampling(self):
         df = self.model.sample(100)
         self.assertTupleEqual(df.shape, (100, 10))
-        self.assertSetEqual(set(df.columns), set(self.model.nodes))
+        self.assertSetEqual(set(df.columns), set(self.model.visible_nodes))
+
+    def test_sampling_with_hidden(self):
+        df = self.model.sample(100, exclude_hidden_nodes=False)
+
+        for node in self.model.dag_gen.nodes_hidden:
+            self.assertIn(node, df)
+        self.assertTupleEqual(df.shape, (100, 12))
 
     def test_sampling_of_some_variables(self):
         df = self.model.sample(100, nodes=['X00', 'X09'])
@@ -101,6 +136,21 @@ class TestModelWithFixedTerms(unittest.TestCase):
         self.assertIsInstance(fixed_term, Linear)
 
 
+class TestModelWithHiddenNOdes(unittest.TestCase):
+
+    def setUp(self):
+        self.model = BayesianNetwork(
+            dag=ToyDAGWithHiddenNode(),
+            conditionals=PolynomialConditional(),
+            random_state=10
+        )
+
+    def test_sampling(self):
+        df = self.model.sample(10)
+        self.assertNotIn('D', df)
+        self.assertTupleEqual(df.shape, (10, 4))
+
+
 class TestModifications(unittest.TestCase):
 
     def setUp(self):
@@ -133,13 +183,6 @@ class TestPolynomialErdosReny(unittest.TestCase):
         df = self.model.sample(100)
         self.assertTupleEqual(df.shape, (100, 10))
         self.assertSetEqual(set(df.columns), set(self.model.nodes))
-
-    def test_source_distribution(self):
-        df_a = self.model.sample(1000)
-        df_b = self.model.sample(1000)
-
-        p = ks_2samp(df_a['X01'], df_b['X01']).pvalue
-        self.assertGreater(p, 0.05)
 
 
 class TestCausalEffects(unittest.TestCase):
