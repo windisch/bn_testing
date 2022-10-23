@@ -92,12 +92,22 @@ class BayesianNetwork(metaclass=ABCMeta):
         """
         return len(self._get_parents(node)) == 0
 
+    def _build_noise(self, node):
+
+        if self.dag.nodes[node].get('no_noise', False):
+            return pm.math.constant(0)
+        else:
+            return self.dag.nodes[node].get(
+                'noise',
+                self.conditionals.make_noise()
+            )
+
     def _build_noises(self):
         noises = {}
         for node in self.nodes:
             parents = self._get_parents(node)
             if len(parents) > 0:
-                noises[node] = self.conditionals.make_noise()
+                noises[node] = self._build_noise(node)
         return noises
 
     def _build_sources(self):

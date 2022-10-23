@@ -153,6 +153,7 @@ Fixed terms
 .. code-block:: python
 
    from bn_testing.dags import DAG
+   import pymc as pm
 
    class PathGraph(DAG):
 
@@ -165,5 +166,9 @@ Fixed terms
 
          # Optionally, attach some fixed terms
          dag.nodes[1]['term'] = Linear(parents=[0], coefs=[10])
+
+         # Optionally, set own noise for dcertain nodes
+         dag.nodes[1]['noise'] = pm.Normal.dist(mu=0, sigma=0.1)
+         dag.nodes[2]['no_noise'] = True
 
          return dag

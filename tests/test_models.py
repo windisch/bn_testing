@@ -32,7 +32,25 @@ class ToyDAGWithTerms(DAG):
         dag = nx.DiGraph()
         dag.add_edges_from([['A', 'B'], ['B', 'D'], ['C', 'D'], ['D', 'E']])
 
-        dag.nodes['D']['term'] = Linear(['B', 'C'], [-100, 100])
+        dag.nodes['D'] = {
+            'term': Linear(['B', 'C'], [-100, 100]),
+            'noise': pm.math.constant(0),
+        }
+        return dag
+
+
+class ToyDAGWithoutNoise(DAG):
+
+    def make_dag(self):
+        dag = nx.DiGraph()
+
+        dag.add_node(
+            'C',
+            term=Linear(['A', 'B'], [1, 2]),
+            no_noise=True,
+        )
+
+        dag.add_edges_from([['A', 'C'], ['B', 'C']])
         return dag
 
 
@@ -121,19 +139,30 @@ class TestLinearErdosReny(unittest.TestCase):
         np.testing.assert_array_almost_equal(df.std(), 1.0)
 
 
-class TestModelWithFixedTerms(unittest.TestCase):
+class TestFixedTerms(unittest.TestCase):
 
-    def setUp(self):
-        self.model = BayesianNetwork(
+    def test_fixed_term(self):
+        model = BayesianNetwork(
             dag=ToyDAGWithTerms(),
             conditionals=PolynomialConditional(),
             random_state=10
         )
-
-    def test_fixed_term(self):
-        fixed_term = self.model.terms['D']
+        fixed_term = model.terms['D']
         self.assertListEqual(fixed_term. coefs, [-100, 100])
         self.assertIsInstance(fixed_term, Linear)
+
+    def test_no_noise(self):
+        model = BayesianNetwork(
+            dag=ToyDAGWithoutNoise(),
+            conditionals=LinearConditional(),
+            random_state=10
+        )
+
+        df = model.sample(10)
+        np.testing.assert_array_equal(
+            df['C'],
+            df['A'] + 2*df['B']
+        )
 
 
 class TestModelWithHiddenNOdes(unittest.TestCase):
