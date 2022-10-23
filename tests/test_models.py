@@ -2,7 +2,6 @@ import unittest
 import networkx as nx
 import numpy as np
 import pymc as pm
-from scipy.stats import ks_2samp
 
 from bn_testing.models import BayesianNetwork
 from bn_testing.dags import (
@@ -32,10 +31,8 @@ class ToyDAGWithTerms(DAG):
         dag = nx.DiGraph()
         dag.add_edges_from([['A', 'B'], ['B', 'D'], ['C', 'D'], ['D', 'E']])
 
-        dag.nodes['D'] = {
-            'term': Linear(['B', 'C'], [-100, 100]),
-            'noise': pm.math.constant(0),
-        }
+        dag.nodes['D']['term'] = Linear(['B', 'C'], [-100, 100])
+        dag.nodes['D']['noise'] = pm.math.constant(0)
         return dag
 
 
