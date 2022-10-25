@@ -1,6 +1,9 @@
 import unittest
 import networkx as nx
 import numpy as np
+import pandas as pd
+import os
+import tempfile
 import pymc as pm
 
 from bn_testing.models import BayesianNetwork
@@ -258,3 +261,25 @@ class TestVarsortability(unittest.TestCase):
         varsortability = self.model.compute_varsortability()
         self.assertLessEqual(varsortability, 1)
         self.assertGreaterEqual(varsortability, 0)
+
+
+class TestSavingAndLoading(unittest.TestCase):
+
+    def setUp(self):
+        self.model = BayesianNetwork(
+            dag=ToyDAG(),
+            conditionals=LinearConditional(),
+            random_state=10
+        )
+
+    def test_saving_and_loading(self):
+
+        with tempfile.NamedTemporaryFile() as tmpfile:
+            self.model.save(tmpfile.name)
+            self.assertTrue(os.path.exists(tmpfile.name))
+            model = BayesianNetwork.load(tmpfile.name)
+
+        pd.testing.assert_frame_equal(
+            self.model.sample(100),
+            model.sample(100),
+        )

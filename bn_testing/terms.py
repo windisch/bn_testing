@@ -5,6 +5,10 @@ import numbers
 from bn_testing.helpers import sigmoid
 
 
+def _zero(_):
+    return 0
+
+
 class Term(object):
     """
     A mathematical expression that transforms the parent nodes into the given node
@@ -20,7 +24,7 @@ class Term(object):
         self.disp = disp
 
         if term_fn is None:
-            self.term_fn = lambda x: 0
+            self.term_fn = _zero
         else:
             self.term_fn = term_fn
 
@@ -190,8 +194,11 @@ class Constant(Term):
     """
 
     def __init__(self, parents, value):
+        self.value = value
         super(Constant, self).__init__(
             parents=parents,
-            term_fn=lambda _: pm.math.constant(value),
-            disp="{:.1f}".format(value)
+            disp="{:.1f}".format(self.value)
         )
+
+    def apply(self, _):
+        return pm.math.constant(self.value)
