@@ -1,5 +1,4 @@
 import numpy as np
-import os
 import pickle
 import cloudpickle
 import pandas as pd
@@ -17,9 +16,6 @@ logger = logging.getLogger(__name__)
 
 class BayesianNetwork(metaclass=ABCMeta):
     """
-
-    Note:
-        We assume that the order of the nodes is a topological ordering of the resulting graph.
 
     :param bn_testing.dags.DAG dag: A DAG generation method
     :param bn_testing.conditionals.Conditionals conditionals: A conditional type
@@ -307,8 +303,7 @@ class BayesianNetwork(metaclass=ABCMeta):
         Loads the model from a file.
 
         :param str filepath: Path to a file where model has been written to with
-        :py:func:`~bn_testing.models.BayesianNetwork.save`
-
+            :py:func:`~bn_testing.models.BayesianNetwork.save`
 
         :returns: The loaded model
         :rtype: bn_testing.models.BayesianNetwork
