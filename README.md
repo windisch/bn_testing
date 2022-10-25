@@ -1,7 +1,7 @@
 # BN testing
 
 
-[![Test Package](https://github.com/windisch/bn_testing/actions/workflows/test_package.yml)](https://github.com/windisch/bn_testing/actions/workflows/test_package.yml/badge.svg)
+[![Test Package](https://github.com/windisch/bn_testing/actions/workflows/test_package.yml/badge.svg)](https://github.com/windisch/bn_testing/actions/workflows/test_package.yml)
 [![Documentation Status](https://readthedocs.org/projects/bn_testing/badge/?version=latest)](https://bn_testing.readthedocs.io/en/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/bn_testing)](https://pypi.org/project/bn_testing/)
 
