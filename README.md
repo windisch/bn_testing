@@ -17,13 +17,13 @@ from bn_testing.conditionals import PolynomialConditional
 
 
 model = BayesianNetwork(
-   n_nodes=100,
-   dag=ErdosReny(p=0.01),
+   dag=ErdosReny(p=0.01, n_nodes=100),
    conditionals=PolynomialConditional(max_terms=5)
 )
 
-df = model.sample(10000)
+df = model.sample(10000, normalize=True)
 ```
+
 The observations are stored in a `pandas.DataFrame` where the columns
 are the nodes of the DAG and each row is an observation. The
 underlying DAG of the graphical model can be accessed with `model.dag`
