@@ -97,3 +97,22 @@ Marginal distributions
 
 
 .. image:: ./figures/marginals.png
+
+
+
+Saving and loading
+------------------
+
+A model object can be saved to disk as follows:
+
+.. code-block:: python
+
+   model.save('/path/to/model.pkl')
+
+
+Afterwards, it can be loaded using:
+
+.. code-block:: python
+
+   from bn_testing.models import BayesianNetwork
+   model = BayesianNetwork.load('/path/to/model.pkl')

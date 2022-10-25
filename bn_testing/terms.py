@@ -20,7 +20,7 @@ class Term(object):
         self.disp = disp
 
         if term_fn is None:
-            self.term_fn = lambda x: 0
+            self.term_fn = lambda x: pm.math.constant(0)
         else:
             self.term_fn = term_fn
 

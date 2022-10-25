@@ -1,10 +1,12 @@
 import numpy as np
+import pickle
+import cloudpickle
 import pandas as pd
 import logging
 import networkx as nx
 import pymc as pm
-from itertools import combinations
 
+from itertools import combinations
 from abc import ABCMeta
 
 from bn_testing.conditionals import ConstantConditional
@@ -14,9 +16,6 @@ logger = logging.getLogger(__name__)
 
 class BayesianNetwork(metaclass=ABCMeta):
     """
-
-    Note:
-        We assume that the order of the nodes is a topological ordering of the resulting graph.
 
     :param bn_testing.dags.DAG dag: A DAG generation method
     :param bn_testing.conditionals.Conditionals conditionals: A conditional type
@@ -270,7 +269,7 @@ class BayesianNetwork(metaclass=ABCMeta):
         variables = self._build_variables()
 
         logger.info('Start sampling')
-        data = pm.draw([variables[n] for n in nodes], draws=n)
+        data = pm.draw([variables[n] for n in nodes], draws=n, random_seed=self.random)
         df = pd.DataFrame(
             data=np.array(data).T,
             columns=nodes
@@ -285,3 +284,31 @@ class BayesianNetwork(metaclass=ABCMeta):
         Visualizes the generated DAG.
         """
         self.dag_gen.show(self.dag)
+
+    def save(self, filepath):
+        """
+        Saves the model to the specified file
+
+        :param str filepath: Path to a file where model should be written to
+        """
+
+        model_pickled = cloudpickle.dumps(self)
+
+        with open(filepath, 'wb') as f:
+            pickle.dump(model_pickled, f)
+
+    @staticmethod
+    def load(filepath):
+        """
+        Loads the model from a file.
+
+        :param str filepath: Path to a file where model has been written to with
+            :py:func:`~bn_testing.models.BayesianNetwork.save`
+
+        :returns: The loaded model
+        :rtype: bn_testing.models.BayesianNetwork
+        """
+
+        with open(filepath, 'rb') as f:
+            model_pickled = cloudpickle.loads(f.read())
+        return pickle.loads(model_pickled)
