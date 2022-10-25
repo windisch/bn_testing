@@ -265,21 +265,19 @@ class TestVarsortability(unittest.TestCase):
 
 class TestSavingAndLoading(unittest.TestCase):
 
-    def setUp(self):
-        self.model = BayesianNetwork(
-            dag=ToyDAG(),
+    def test_saving_and_loading(self):
+        model = BayesianNetwork(
+            dag=ToyDAGWithTerms(),
             conditionals=LinearConditional(),
             random_state=10
         )
 
-    def test_saving_and_loading(self):
-
         with tempfile.NamedTemporaryFile() as tmpfile:
-            self.model.save(tmpfile.name)
+            model.save(tmpfile.name)
             self.assertTrue(os.path.exists(tmpfile.name))
-            model = BayesianNetwork.load(tmpfile.name)
+            model_loaded = BayesianNetwork.load(tmpfile.name)
 
         pd.testing.assert_frame_equal(
-            self.model.sample(100),
             model.sample(100),
+            model_loaded.sample(100),
         )
