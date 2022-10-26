@@ -6,6 +6,8 @@ import logging
 import networkx as nx
 import pymc as pm
 
+from aesara.tensor.var import TensorVariable
+
 from itertools import combinations
 from abc import ABCMeta
 
@@ -41,28 +43,99 @@ class BayesianNetwork(metaclass=ABCMeta):
         logger.info('Generate DAG')
         self.dag = self.dag_gen.generate(random=self.random)
         logger.info('Generate models')
-        self.terms = self._build_terms()
-        self.sources = self._build_sources()
-        self.noises = self._build_noises()
+        self._build_terms()
+        self._build_sources()
+        self._build_noises()
 
     @property
     def edges(self):
         return list(self.dag.edges())
 
-    def modify_term(self, node, conditionals=None):
+    def modify_source_node(self, node, distribution=None, conditionals=None):
+        """
+        Modifies the distribution of a source node.
 
-        if node not in self.nodes:
-            raise ValueError(f'Unkown node {node}')
+        :param str node: Name of the node. Cannot be a source node
+        :param aesara.tensor.var.TensorVariable distribution:  Optional, a new distribution. If set
+            to :code:`None`, a source distribution is generated using the conditional.
+        :param bn_testing.conditionals.Conditionals conditionals: A conditional. If set to
+            :code:`None`, then `distribution` must be given.
+        """
+        if not self.is_source(node):
+            raise ValueError(f'Node {node} is not a source node')
 
         if conditionals is None:
             conditionals = self.conditionals
         else:
             conditionals.init(self.random)
-        self.terms[node] = conditionals.make_term(
-            parents=self._get_parents(node),
-            node=node
-        )
-        self.noises[node] = conditionals.make_noise()
+
+        if distribution is None:
+            logger.info('Modify source node')
+            distribution = conditionals.make_source()
+
+        assert isinstance(distribution, TensorVariable), 'Distribution of wrong type'
+
+        self.sources[node] = distribution
+
+    def modify_inner_node(self, node, term=None, noise=None, conditionals=None):
+        """
+        Modifies the term and the noise of a given node.
+
+        :param str node: Name of the node. Cannot be a source node
+        :param bn_testing.terms.Term term: Optional, a new term. If set to :code:`None`, a term is
+            generated randomly using :code:`conditionals`.
+        :param aesara.tensor.var.TensorVariable noise:  Optional, a new noise. If set to
+            :code:`None`, a noise is generated using the conditional.
+        :param bn_testing.conditionals.Conditionals conditionals: A conditional. If set to
+            :code:`None`, then `term` and `noise` must be given.
+        """
+        if self.is_source(node):
+            raise ValueError(f'Node {node} is not an inner node')
+
+        if conditionals is None:
+            conditionals = self.conditionals
+        else:
+            conditionals.init(self.random)
+
+        if term is None:
+            term = conditionals.make_term(
+                parents=self._get_parents(node),
+                node=node,
+            )
+
+        if noise is None:
+            noise = conditionals.make_noise()
+
+        assert isinstance(noise, TensorVariable)
+
+        self._set_term(node, term)
+        self.noises[node] = noise
+
+    def modify_node(self, node, conditionals=None):
+        """
+        General function to modify the distribution at a node using a conditional.
+
+        If more control over the modification is needed, the functions
+        :py:func:`~bn_testing.models.BayesianNetwork.modify_inner_node` for inner nodes and
+        :py:func:`~bn_testing.models.BayesianNetwork.modify_source_node` for source nodes can be
+        used respectively.
+        """
+
+        if node not in self.nodes:
+            raise ValueError(f'Unkown node {node}')
+
+        if self.is_source(node):
+            logger.info('Modify a source node')
+            self.modify_source_node(
+                node=node,
+                conditionals=conditionals,
+            )
+        else:
+            logger.info('Modify an inner node')
+            self.modify_inner_node(
+                node=node,
+                conditionals=conditionals,
+            )
 
     @property
     def nodes(self):
@@ -102,29 +175,27 @@ class BayesianNetwork(metaclass=ABCMeta):
             )
 
     def _build_noises(self):
-        noises = {}
+        self.noises = {}
         for node in self.nodes:
             parents = self._get_parents(node)
             if len(parents) > 0:
-                noises[node] = self._build_noise(node)
-        return noises
+                self.noises[node] = self._build_noise(node)
 
     def _build_sources(self):
         """
         Builds PyMC variables that correspond to source nodes in the DAG.
         """
-        sources = {}
+        self.sources = {}
         for node in self.nodes:
             if self.dag.in_degree(node) == 0:
-                sources[node] = self.conditionals.make_source()
-        return sources
+                self.sources[node] = self.conditionals.make_source()
 
     def _build_terms(self):
-        terms = {}
+        self.terms = {}
         for node in self.nodes:
             parents = self._get_parents(node)
             if len(parents) > 0:
-                terms[node] = self.dag.nodes[node].get(
+                term = self.dag.nodes[node].get(
                     'term',
                     # Check if dag has a term for that node, otherwise generate one using the
                     # conditional
@@ -133,8 +204,12 @@ class BayesianNetwork(metaclass=ABCMeta):
                         node=node,
                     )
                 )
-                assert set(terms[node].parents) == set(parents)
-        return terms
+                self._set_term(node, term)
+
+    def _set_term(self, node, term):
+        parents = self._get_parents(node)
+        assert set(term.parents) == set(parents)
+        self.terms[node] = term
 
     def _build_variable(self, node, parents_mapping):
         """
@@ -181,7 +256,7 @@ class BayesianNetwork(metaclass=ABCMeta):
             term = self.terms[node_from]
             noise = self.noises[node_from]
 
-        self.modify_term(
+        self.modify_node(
             node=node_from,
             conditionals=ConstantConditional(value=value)
         )
@@ -191,7 +266,7 @@ class BayesianNetwork(metaclass=ABCMeta):
         if self.is_source(node_from):
             self.sources[node_from] = source
         else:
-            self.terms[node_from] = term
+            self._set_term(node_from, term)
             self.noises[node_from] = noise
 
         return df_intervent[node_onto].mean() - df_orig[node_onto].mean()
