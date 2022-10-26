@@ -41,5 +41,6 @@ Contents
    dags
    conditionals
    terms
+   interventions
    examples
    api
