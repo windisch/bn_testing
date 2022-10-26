@@ -3,3 +3,4 @@ pandas>=1.5.0
 networkx>=2.5
 pymc>4.2.0
 cloudpickle
+aesara
