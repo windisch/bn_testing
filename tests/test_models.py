@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -138,6 +139,14 @@ class TestLinearErdosReny(unittest.TestCase):
         df = self.model.sample(100, normalize=True)
         np.testing.assert_array_almost_equal(df.std(), 1.0)
 
+    def test_set_term_with_wrong_parents(self):
+
+        with self.assertRaises(AssertionError):
+            self.model._set_term(
+                node='X03',
+                term=Linear(['Y1', 'Y2'], [0.1, 0.2]),
+            )
+
 
 class TestFixedTerms(unittest.TestCase):
 
@@ -184,16 +193,72 @@ class TestModifications(unittest.TestCase):
 
     def setUp(self):
         self.model = BayesianNetwork(
-            dag=ErdosReny(p=0.1, n_visible_nodes=10),
+            dag=ToyDAG(),
             conditionals=LinearConditional(),
             random_state=10
         )
 
-    def test_modification(self):
-        term_orig = self.model.terms['X07']
+    def test_modification_of_source_node(self):
 
-        self.model.modify_term('X07')
-        term_new = self.model.terms['X07']
+        # Copy original distributions
+        dists_orig = dict(self.model.sources)
+
+        self.model.modify_source_node(
+            node='A',
+            distribution=pm.Normal.dist(mu=0),
+        )
+
+        for node in self.model.nodes:
+            if not self.model.is_source(node):
+                continue
+
+            if node == 'A':
+                self.assertNotEqual(
+                    dists_orig[node],
+                    self.model.sources[node],
+                )
+            else:
+                self.assertEqual(
+                    dists_orig[node],
+                    self.model.sources[node],
+                )
+
+    def test_assert_that_modify_source_is_called(self):
+        with patch.object(self.model, 'modify_source_node') as mock:
+            self.model.modify_node('A')
+            mock.assert_called_once()
+
+    def test_assert_that_modify_inner_is_called(self):
+        with patch.object(self.model, 'modify_inner_node') as mock:
+            self.model.modify_node('B')
+            mock.assert_called_once()
+
+    def test_modify_source_node_for_non_source_node(self):
+        with self.assertRaises(ValueError):
+            self.model.modify_source_node(
+                node='B',
+                conditionals=LinearConditional(),
+            )
+
+    def test_modify_inner_node_for_source_node(self):
+        with self.assertRaises(ValueError):
+            self.model.modify_inner_node(
+                node='A',
+                conditionals=LinearConditional(),
+            )
+
+    def test_setting_of_concreate_term_with_wrong_parents(self):
+        with self.assertRaises(AssertionError):
+            self.model.modify_inner_node(
+                node='B',
+                term=Linear(['D', 'E'], [0.1, 0.2]),
+            )
+
+    def test_modify_node_only_with_node_name(self):
+        term_orig = self.model.terms['D']
+
+        self.model.modify_node('D')
+        term_new = self.model.terms['D']
         self.assertTrue(
             np.all(term_new.coefs != term_orig.coefs)
         )

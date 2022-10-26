@@ -15,12 +15,14 @@ class Conditional(object):
 
     def make_term(self, parents, node):
         """
-        Args:
-            parents (list): Name of the parent nodes.
-            node (str): Name of the node whose term  should be made
+        Builds a term randomly.
 
-        Returns:
-            bn_testing.term.Term: A term
+
+        :param list parents: Name of the parent nodes.
+        :param str node: Name of the node whose term  should be made
+
+        :returns: A term
+        :rtype: bn_testing.term.Term
         """
         raise NotImplementedError()
 
@@ -77,13 +79,12 @@ class PolynomialConditional(Conditional):
         Computes a random monomial exponent in `n_variables` many variables of given degree where
         no variable vanishes.
 
-        Args:
-            degree (int): Sum of all exponents
-            n_variables (int): Number of variables
+        :param int degree: Sum of all exponents
+        :param int n_variables: Number of variables
 
-        Returns:
-            numpy.ndarray: Integer Array of length `n_variables` that sum to `degree` where no entry
+        :returns: Integer Array of length `n_variables` that sum to `degree` where no entry
             is zero.
+        :rtype: numpy.ndarray
 
         """
         assert degree >= n_variables
@@ -129,3 +130,6 @@ class ConstantConditional(Conditional):
 
     def make_noise(self):
         return pm.math.constant(0)
+
+    def make_source(self):
+        return pm.math.constant(self.value)
