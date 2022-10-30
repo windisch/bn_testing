@@ -6,7 +6,7 @@
 [![PyPI](https://img.shields.io/pypi/v/bn_testing)](https://pypi.org/project/bn_testing/)
 
 A test framework to evaluate methods that learn Bayesian Networks from
-high-dimensional observed data.
+high-dimensional observational data.
 
 
 ## Sampling
