@@ -2,8 +2,15 @@ bn_testing
 ==========
 
 A test framework to evaluate methods that learn Bayesian Networks from
-high-dimensional observed data.
+high-dimensional observed data. It provides helpers to construct
+Bayesian networks in a randomized fashion and helps sampling
+observational data from it. Its **not** a framework to fit Bayesian
+networks on data!
 
+
+.. note::
+
+   Currently, only additive models are supported.
 
 Quick start
 -----------
@@ -31,6 +38,8 @@ underlying DAG of the graphical model can be accessed with `model.dag`
 .. note::
 
    This project is under active development.
+
+
 
 Contents
 --------
