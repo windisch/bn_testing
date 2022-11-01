@@ -8,7 +8,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  run-tests:
+  test-docs:
 
     runs-on: ubuntu-latest
     strategy:
@@ -27,6 +27,6 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install -r requirements_docs.txt
         python -m pip install .
-    - name: Test with pytest
+    - name: Test doc build
       run: |
         python setup.py doc -W

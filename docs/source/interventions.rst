@@ -68,7 +68,7 @@ conditional:
 
 .. code-block:: python
 
-   from bn_testing.conditinoals import LinearConditional
+   from bn_testing.conditionals import LinearConditional
 
    model.modify_node(node='X3', conditionals=LinearConditional())
 
