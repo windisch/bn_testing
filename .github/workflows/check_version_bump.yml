@@ -28,6 +28,6 @@ jobs:
           echo "$file was changed"
         done
 
-     - name: Check if VERSION has been changed
-       if: steps.changed-file.outputs.any_changed == 'false'
-       run: exit 1
+    - name: Check if VERSION has been changed
+      if: steps.changed-file.outputs.any_changed == 'false'
+        run: exit 1
