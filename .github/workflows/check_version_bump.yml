@@ -1,0 +1,15 @@
+name: Test VERSION bump
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  check-version-bump:
+
+    - name: Verify file change
+      uses: tj-actions/verify-changed-files@v12
+      id: verify-changed-files
+      with:
+        files: |
+          VERSION
