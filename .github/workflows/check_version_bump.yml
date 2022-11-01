@@ -27,3 +27,7 @@ jobs:
         for file in ${{ steps.changed-file.outputs.all_changed_files }}; do
           echo "$file was changed"
         done
+
+     - name: Check if VERSION has been changed
+       if: steps.changed-file.outputs.any_changed == 'false'
+       run: exit 1
