@@ -88,3 +88,17 @@ class TestPolynomial(unittest.TestCase):
                 coefs=[1, 1],
                 intercept=7,
             )
+
+    def test_disp_under_parents_change(self):
+
+        polynomial = Polynomial(
+            parents=['x', 'y'],
+            exponents=[[1, -2]],
+            coefs=[2.5],
+        )
+
+        polynomial.parents = ['a', 'b']
+        self.assertEqual(
+            polynomial.disp,
+            '2.5*a^1*b^-2'
+        )
