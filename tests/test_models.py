@@ -7,6 +7,8 @@ import os
 import tempfile
 import pymc as pm
 
+from scipy.stats import ks_2samp
+
 from bn_testing.models import BayesianNetwork
 from bn_testing.dags import (
     ErdosReny,
@@ -62,6 +64,15 @@ class ToyDAGWithHiddenNode(DAG):
         dag.add_edges_from([['A', 'B'], ['B', 'D'], ['C', 'D'], ['D', 'E']])
 
         dag.nodes['D']['is_hidden'] = True
+        return dag
+
+
+class ToyDAGWithFixedSource(DAG):
+
+    def make_dag(self):
+        dag = nx.DiGraph()
+        dag.add_edges_from([['A', 'B'], ['B', 'C'], ['D', 'C']])
+        dag.nodes['A']['distribution'] = pm.Normal.dist(mu=10, sigma=5)
         return dag
 
 
@@ -346,3 +357,29 @@ class TestSavingAndLoading(unittest.TestCase):
             model.sample(100),
             model_loaded.sample(100),
         )
+
+
+class TestFixedSourceDistributions(unittest.TestCase):
+
+    def setUp(self):
+
+        self.model = BayesianNetwork(
+            dag=ToyDAGWithFixedSource(),
+            conditionals=LinearConditional(),
+            random_state=10
+        )
+
+    def test_source_distribution_object(self):
+        self.assertEqual(
+            self.model.sources['A'],
+            self.model.dag.nodes['A']['distribution'],
+        )
+
+    def test_different_means(self):
+        df = self.model.sample(1000)
+
+        _, p = ks_2samp(df['A'], df['D'])
+
+        self.assertLess(p, 0.001)
+        self.assertGreater(df['A'].mean(), 9)
+        self.assertLess(df['D'].mean(), 1)
