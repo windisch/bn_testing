@@ -188,7 +188,10 @@ class BayesianNetwork(metaclass=ABCMeta):
         self.sources = {}
         for node in self.nodes:
             if self.dag.in_degree(node) == 0:
-                self.sources[node] = self.conditionals.make_source()
+                self.sources[node] = self.dag.nodes[node].get(
+                    'distribution',
+                    self.conditionals.make_source()
+                )
 
     def _build_terms(self):
         self.terms = {}

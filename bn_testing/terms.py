@@ -17,7 +17,7 @@ class Term(object):
 
     def __init__(self, parents, term_fn=None, disp=""):
         self.parents = parents
-        self.disp = disp
+        self._disp = disp
 
         if term_fn is None:
             self.term_fn = lambda x: pm.math.constant(0)
@@ -41,6 +41,13 @@ class Term(object):
         Applies the term onto the parents
         """
         return self.term_fn(parents_mapping)
+
+    def __call__(self, **parents_mapping):
+        return self.apply(parents_mapping)
+
+    @property
+    def disp(self):
+        return self._disp
 
     def __repr__(self):
         return self.disp
@@ -116,9 +123,12 @@ class Linear(Term):
         self.coefs = coefs
         super(Linear, self).__init__(
             parents=parents,
-            disp=" + ".join(
-                ["{:.1f}*{}".format(c, p) for c, p in zip(self.coefs, parents)]
-            )
+        )
+
+    @property
+    def disp(self):
+        return " + ".join(
+            ["{:.1f}*{}".format(c, p) for c, p in zip(self.coefs, self.parents)]
         )
 
     def apply(self, parents_mapping):
@@ -149,24 +159,25 @@ class Polynomial(Term):
         if self.coefs.shape[0] != self.exponents.shape[0]:
             raise ValueError('Exponents do not match coefs')
 
-        super(Polynomial, self).__init__(
-            parents=parents,
-            disp="+".join(
-                [
-                   Polynomial._disp_term(
-                       parents=parents,
-                       exp=e,
-                       coef=c
-                   ) for e, c in zip(self.exponents, self.coefs)
-                ]
-            )
-        )
+        super(Polynomial, self).__init__(parents=parents)
 
     @staticmethod
     def _disp_term(parents, exp, coef):
         return "{:.1f}*".format(coef) + "*".join(
             [
                 f"{p}^{e}" for p, e in zip(parents, exp.astype(str).tolist())
+            ]
+        )
+
+    @property
+    def disp(self):
+        return "+".join(
+            [
+                Polynomial._disp_term(
+                    parents=self.parents,
+                    exp=e,
+                    coef=c
+                ) for e, c in zip(self.exponents, self.coefs)
             ]
         )
 
