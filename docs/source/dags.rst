@@ -1,5 +1,5 @@
-DAG generators
-==============
+Graph construction
+==================
 
 
 Available generators
