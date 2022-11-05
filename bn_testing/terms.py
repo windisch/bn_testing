@@ -156,9 +156,7 @@ class Polynomial(Term):
         if self.coefs.shape[0] != self.exponents.shape[0]:
             raise ValueError('Exponents do not match coefs')
 
-        super(Polynomial, self).__init__(
-            parents=parents,
-        )
+        super(Polynomial, self).__init__(parents=parents)
 
     @staticmethod
     def _disp_term(parents, exp, coef):

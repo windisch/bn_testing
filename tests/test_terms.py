@@ -2,6 +2,7 @@ import unittest
 import pymc as pm
 
 from bn_testing.terms import (
+    Term,
     Linear,
     Polynomial,
 )
@@ -102,3 +103,20 @@ class TestPolynomial(unittest.TestCase):
             polynomial.disp,
             '2.5*a^1*b^-2'
         )
+
+
+class TestTermBasics(unittest.TestCase):
+
+    def test_term_fn(self):
+        term = Term(
+            parents=['a', 'b'],
+            term_fn=lambda v: v['a']*v['b']
+        )
+
+        result = term.apply(
+            {
+                'a': pm.math.constant(10),
+                'b': pm.math.constant(1/10)
+            }
+        )
+        self.assertEqual(result.eval(), 1.0)
