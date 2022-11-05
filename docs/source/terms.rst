@@ -3,17 +3,47 @@ Terms
 
 Terms specify how a node variable is build from its parents. 
 
+Usage
+-----
+
+Here is how a term can be setup
+
+
+.. code-block:: python
+
+   from bn_testing.terms import Term
+   import numpy as np
+
+   some_term = Term(
+       parents=['a', 'b'],
+       term_fn=lambda v: np.sqrt(v['a'])*v['b'],
+   )
+
+
+Afterwards, the term can be applied on :py:mod:`pymc` variables and
+distributions:
+
+.. code-block:: python
+
+   import pymc as pm
+
+   dist = some_term(
+      a=pm.Normal.dist(mu=1, sigma=0.4),
+      b=pm.Beta.dist(alpha=0.4, beta=0.2),
+    )
 
 Existing terms
 --------------
 
-Here is a list of terms. Assume that the parents are
+Here is a list of terms that ease instantiation for some classes of
+terms frequently used. Assume that the parents are
 :math:`x_1,\ldots,x_n`:
 
 * :py:class:`~bn_testing.terms.Linear`: A linear term of the form
   :math:`\sum_{i=1}^nw_ix_i`
 * :py:class:`~bn_testing.terms.Polynomial`: A multivariate polynomial,
   i.e., a sum of the form :math:`\sum_{j=1}^mc_j\prod_{i=1}^nx_i^{e_{ji}}`
+
 
 
 Arithmetic with terms

@@ -107,13 +107,22 @@ class TestPolynomial(unittest.TestCase):
 
 class TestTermBasics(unittest.TestCase):
 
-    def test_term_fn(self):
-        term = Term(
+    def setUp(self):
+        self.term = Term(
             parents=['a', 'b'],
             term_fn=lambda v: v['a']*v['b']
         )
 
-        result = term(
+    def test_call(self):
+        result = self.term(
+            a=pm.math.constant(10),
+            b=pm.math.constant(1/10),
+        )
+        self.assertEqual(result.eval(), 1.0)
+
+    def test_apply(self):
+
+        result = self.term.apply(
             {
                 'a': pm.math.constant(10),
                 'b': pm.math.constant(1/10)

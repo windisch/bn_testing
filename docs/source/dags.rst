@@ -96,7 +96,7 @@ In a model, this can be used as follows:
    )
 
 See also the documentation of
-:py:class:`bn_testing.dags.RandomizedDAG` for how to instantiate a
+:py:class:`bn_testing.dags.RandomizedDAG` for how to set up a
 randomized DAG.
 
 
@@ -147,8 +147,68 @@ This can also be done using the helper
    by the class automatically.
 
 
-Fixed terms
------------
+Fixed distributions
+-------------------
+
+Sometimes, some parts of the graphical model need to be fixed, like
+some terms, source distributions, or noise. This can be done while
+constructing the graph by attaching attributes to the nodes to be
+fixed.
+
+
+Terms
+"""""
+
+Specific terms can be attached to nodes during the graph building (for
+instance, to hidden nodes):
+
+.. code-block:: python
+
+   from bn_testing.dags import DAG
+   from bn_testing.terms import (
+      Term,
+      Linear,
+   )
+   import pymc as pm
+
+   class PathGraph(DAG):
+
+      def make_dag(self):
+         dag = nx.path_graph(
+            n=self.n_nodes,
+            create_using=nx.DiGraph
+         )
+
+         # Adding a visible node
+         dag.add_node(
+            'V',
+            term=Linear(parents=[0, 1], coefs=[1, -1]),
+            noise=pm.Normal.dist(mu=0, sigma=0.1)
+         )
+         dag.add_edges_from([(0, 'V'), (1, 'V')])
+
+         # Add a hidden node 
+         dag.add_node(
+            'H',
+            term=Term(
+               parents=[0],
+               term_fn=lambda v: 2*np.sqrt(v[0])
+            ),
+            no_noise=True,
+            hidden=True
+
+         )
+         dag.add_edges_from([(0, 'H'), ('H', 1)])
+
+         return dag
+
+
+
+Source distributions
+""""""""""""""""""""
+
+Another scenario is to fix the distribution of some source nodes. This
+can be done setting the `distribution` attribute of the nodes:
 
 .. code-block:: python
 
@@ -158,17 +218,17 @@ Fixed terms
    class PathGraph(DAG):
 
       def make_dag(self):
-         # Generate a dag using  self.n_nodes
          dag = nx.path_graph(
             n=self.n_nodes,
             create_using=nx.DiGraph
          )
 
-         # Optionally, attach some fixed terms
-         dag.nodes[1]['term'] = Linear(parents=[0], coefs=[10])
-
-         # Optionally, set own noise for dcertain nodes
-         dag.nodes[1]['noise'] = pm.Normal.dist(mu=0, sigma=0.1)
-         dag.nodes[2]['no_noise'] = True
-
+         mu = self.random.uniform(-1, 1)
+         dag.nodes[0]['distribution'] = pm.Normal.dist(mu=mu, sigma=0.1)
          return dag
+
+.. note::
+   
+   The attribiute `distribution` is ignored for any non-source node
+   and vice-verse are the attributes `noise` and `term` for nodes with
+   incoming edges. 

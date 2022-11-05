@@ -227,7 +227,7 @@ class BayesianNetwork(metaclass=ABCMeta):
 
         """
         if len(parents_mapping.keys()) > 0:
-            var = self.terms[node](parents_mapping) + self.noises[node]
+            var = self.terms[node].apply(parents_mapping) + self.noises[node]
         else:
             # As generating the source introduces some randomness we would like to fix, we have to
             # build the source variables only once and reuse them here.
@@ -254,7 +254,7 @@ class BayesianNetwork(metaclass=ABCMeta):
                 parents=[],
                 node=node_from
             )
-            self.sources[node_from] = term({})
+            self.sources[node_from] = term.apply({})
         else:
             term = self.terms[node_from]
             noise = self.noises[node_from]
