@@ -42,6 +42,9 @@ class Term(object):
         """
         return self.term_fn(parents_mapping)
 
+    def __call__(self, parents_mapping):
+        return self.apply(parents_mapping)
+
     @property
     def disp(self):
         return self._disp

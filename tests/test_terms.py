@@ -113,7 +113,7 @@ class TestTermBasics(unittest.TestCase):
             term_fn=lambda v: v['a']*v['b']
         )
 
-        result = term.apply(
+        result = term(
             {
                 'a': pm.math.constant(10),
                 'b': pm.math.constant(1/10)
