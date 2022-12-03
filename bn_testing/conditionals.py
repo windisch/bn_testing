@@ -65,14 +65,24 @@ class LinearConditional(Conditional):
 
 class PolynomialConditional(Conditional):
     """
-    Conditional that builds polynomial terms
+    Conditional that builds randomized polynomial terms
+
+
+    :param int min_terms: Minimal number of terms in a generated polynomial
+    :param int min_terms: Maximal number of terms in a generated polynomial
+    :param int max_degree_add: Number to add on the number of variables in a monomial to get its
+        largest possible degree
+    :param bool with_tanh: Whether :py:func:`numpy.tanh` should be applied onto the monmial
+    :param bool with_log: Whether each monomial should be wrapped by :py:func:`log1p` expression
+
     """
 
-    def __init__(self, min_terms=1, max_terms=5, max_degree_add=10, with_tanh=True):
+    def __init__(self, min_terms=1, max_terms=5, max_degree_add=10, with_tanh=True, with_log=False):
         self.min_terms = min_terms
         self.max_terms = max_terms
         self.max_degree_add = max_degree_add
         self.with_tanh = with_tanh
+        self.with_log = with_log
 
     def _get_random_exponent(self, degree, n_variables):
         """
@@ -114,6 +124,7 @@ class PolynomialConditional(Conditional):
             coefs=coefs,
             intercept=0,
             with_tanh=self.with_tanh,
+            with_log=self.with_log,
         )
 
 
