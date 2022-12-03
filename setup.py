@@ -24,7 +24,7 @@ setup(
     author="Tobias Windisch",
     author_email="tobias.windisch@posteo.de",
     description="A test bench to benchmark learn algorithms for graphical models",
-    license="GNU GPL3",
+    license="Apache-2.0",
     long_description=(Path(__file__).parent / "README.md").read_text(),
     long_description_content_type='text/markdown',
     keywords="graphical models",
