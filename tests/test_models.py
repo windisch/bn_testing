@@ -275,19 +275,32 @@ class TestModifications(unittest.TestCase):
         )
 
 
-class TestPolynomialErdosReny(unittest.TestCase):
+class TestPolynomial(unittest.TestCase):
 
     def setUp(self):
-        self.model = BayesianNetwork(
-            dag=ErdosReny(p=0.1, n_visible_nodes=10),
+        self.dag = ErdosReny(p=0.1, n_visible_nodes=10)
+
+    def test_sampling(self):
+        model = BayesianNetwork(
+            dag=self.dag,
             conditionals=PolynomialConditional(),
             random_state=10
         )
-
-    def test_sampling(self):
-        df = self.model.sample(100)
+        df = model.sample(100)
         self.assertTupleEqual(df.shape, (100, 10))
-        self.assertSetEqual(set(df.columns), set(self.model.nodes))
+        self.assertSetEqual(set(df.columns), set(model.nodes))
+
+    def test_with_log(self):
+        model = BayesianNetwork(
+            dag=self.dag,
+            conditionals=PolynomialConditional(
+                with_tanh=False,
+                with_log=True,
+            ),
+            random_state=10
+        )
+        df = model.sample(100)
+        self.assertEqual(df.isna().sum().sum(), 0)
 
 
 class TestCausalEffects(unittest.TestCase):
