@@ -195,7 +195,7 @@ instance, to hidden nodes):
                term_fn=lambda v: 2*np.sqrt(v[0])
             ),
             no_noise=True,
-            hidden=True
+            is_hidden=True
 
          )
          dag.add_edges_from([(0, 'H'), ('H', 1)])
