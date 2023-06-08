@@ -117,23 +117,30 @@ class Linear(Term):
 
     :param list parents: List of parent nodes
     :param numpy.ndarray coefs: Array of coefficients, size must equal the number of parents
+    :param float intercept: intercept of the linear transformation
     """
 
-    def __init__(self, parents, coefs):
+    def __init__(self, parents, coefs, intercept=0):
         self.coefs = coefs
+        self.intercept = intercept
         super(Linear, self).__init__(
             parents=parents,
         )
 
     @property
     def disp(self):
-        return " + ".join(
+
+        disp = " + ".join(
             ["{:.1f}*{}".format(c, p) for c, p in zip(self.coefs, self.parents)]
         )
 
+        if self.intercept != 0.0:
+            disp = f"{disp} + {self.intercept}"
+        return disp
+
     def apply(self, parents_mapping):
         parents = self.get_vars_from_dict(parents_mapping)
-        return np.sum(parents*self.coefs)
+        return np.sum(parents*self.coefs) + self.intercept
 
 
 class Polynomial(Term):

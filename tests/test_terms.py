@@ -14,6 +14,7 @@ class TestCompositions(unittest.TestCase):
         self.parents = ['x', 'y']
         self.t_a = Linear(self.parents, coefs=[1, 2])
         self.t_b = Linear(self.parents, coefs=[-1, -2])
+        self.t_c = Linear(self.parents, coefs=[-1, -2], intercept=2)
         self.mapping = {'x': pm.math.constant(1), 'y': pm.math.constant(2)}
 
     def test_addition(self):
@@ -25,6 +26,11 @@ class TestCompositions(unittest.TestCase):
         a = 3*self.t_a*self.t_b
         result = a.apply(self.mapping)
         self.assertEqual(result.eval(), 3*(1*1+2*2)*(-1*1-2*2))
+
+    def test_multiplication_with_coefs_and_intercept(self):
+        a = 3*self.t_a*self.t_c
+        result = a.apply(self.mapping)
+        self.assertEqual(result.eval(), 3*(1*1+2*2)*((-1*1-2*2)+2))
 
     def test_left_right_multiplication(self):
         left = 4*self.t_a
