@@ -6,7 +6,7 @@ import logging
 import networkx as nx
 import pymc as pm
 
-from aesara.tensor.var import TensorVariable
+from pytensor.tensor.var import TensorVariable
 
 from itertools import combinations
 from abc import ABCMeta
