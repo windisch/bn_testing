@@ -2,7 +2,10 @@ import numpy as np
 import pymc as pm
 import numbers
 
-from bn_testing.helpers import sigmoid
+from bn_testing.helpers import (
+    sigmoid,
+    abslog,
+)
 
 
 class Term(object):
@@ -153,11 +156,13 @@ class Polynomial(Term):
     :param numpy.ndarray coefs: Array holding the coeficients for each monomial
     :param float intercept: The intercept of the polynomial
     :param bool with_tanh: Whether :py:func:`numpy.tanh` should be applied onto the monmial
+    :param bool with_log: Whether each monomial should be wrapped by :py:func:`log1p` expression
     """
-    def __init__(self, parents, exponents, coefs, intercept=0, with_tanh=False):
+    def __init__(self, parents, exponents, coefs, intercept=0, with_tanh=False, with_log=False):
         self.exponents = np.array(exponents)
         self.coefs = np.array(coefs)
         self.with_tanh = with_tanh
+        self.with_log = with_log
         self.intercept = intercept
 
         if len(parents) != self.exponents.shape[1]:
@@ -192,9 +197,12 @@ class Polynomial(Term):
         monomial = np.prod(np.power(parents, exp))
 
         if self.with_tanh:
-            return sigmoid(monomial)
-        else:
-            return monomial
+            monomial = sigmoid(monomial)
+
+        if self.with_log:
+            monomial = abslog(monomial)
+
+        return monomial
 
     def apply(self, parents_mapping):
         parents = self.get_vars_from_dict(parents_mapping)

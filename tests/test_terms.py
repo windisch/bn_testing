@@ -1,4 +1,5 @@
 import unittest
+import numpy as np
 import pymc as pm
 
 from bn_testing.terms import (
@@ -108,6 +109,21 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(
             polynomial.disp,
             '2.5*a^1*b^-2'
+        )
+
+    def test_with_log(self):
+        polynomial = Polynomial(
+            parents=['x', 'y'],
+            exponents=[[1, -2]],
+            coefs=[2.5],
+            with_log=True,
+        )
+
+        self.assertAlmostEqual(
+            polynomial.apply(
+                {'x': pm.math.constant(1.0), 'y': pm.math.constant(3.0)}
+            ).eval(),
+            2.5*np.log(1+np.abs(1**1*3**(-2)))
         )
 
 
